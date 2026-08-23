@@ -1,0 +1,126 @@
+# TableFlow — the whole product on one machine.
+#
+#   cp .env.example .env      (optional; the defaults below already work)
+#   docker compose up --build
+#
+#   web   http://localhost:8080
+#   api   http://localhost:4000/api/health
+#
+# On first boot the `migrate` service applies the schema and seeds the demo
+# restaurant, then exits. The API and worker wait for it to finish.
+
+name: tableflow
+
+x-api-env: &api-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/tableflow?schema=public
+  REDIS_URL: redis://redis:6379
+  # The browser reaches both the app and the API through nginx on 8080, so QR
+  # links and CORS both point at a single origin.
+  WEB_URL: http://localhost:8080
+  API_URL: http://localhost:8080
+  JWT_SECRET: ${JWT_SECRET:-compose-access-secret-please-change-me-000000}
+  JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-compose-refresh-secret-please-change-me-111}
+  JWT_SESSION_SECRET: ${JWT_SESSION_SECRET:-compose-session-secret-please-change-me-222}
+  DEMO_MODE: ${DEMO_MODE:-true}
+  SEED_PASSWORD: ${SEED_PASSWORD:-TableFlow!2024}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  TRUST_PROXY: "true"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tableflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tableflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Runs once: applies migrations, then seeds only if the database is empty.
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      <<: *api-env
+      FORCE_SEED: ${FORCE_SEED:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # The seed is a no-op on a database that already holds a restaurant, so
+    # bringing the stack up again never destroys data. FORCE_SEED=true overrides.
+    command: ["sh", "-c", "npx prisma migrate deploy && node dist/seed/index.js"]
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *api-env
+      PORT: "4000"
+      # Jobs run in the dedicated worker container instead.
+      RUN_WORKER_IN_PROCESS: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "4000:4000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment: *api-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["node", "dist/worker.js"]
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres-data:
+  redis-data:

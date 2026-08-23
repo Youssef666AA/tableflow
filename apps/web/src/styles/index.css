@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * TableFlow design tokens.
+ *
+ * Three surfaces share one vocabulary:
+ *   default  — the management console: cool, dense, professional
+ *   customer — warm off-white, softer contrast, food-first
+ *   kitchen  — near-black, maximum contrast, readable across a hot line
+ */
+@layer base {
+  :root {
+    --c-canvas: 246 247 248;
+    --c-surface: 255 255 255;
+    --c-surface-sunken: 241 243 244;
+    --c-surface-raised: 255 255 255;
+    --c-line: 228 231 234;
+    --c-line-strong: 209 214 219;
+
+    --c-ink: 24 30 27;
+    --c-ink-soft: 71 82 77;
+    --c-ink-muted: 122 132 128;
+    --c-ink-inverse: 255 255 255;
+
+    --c-accent: 47 122 85;
+    --c-accent-strong: 33 94 65;
+    --c-accent-soft: 232 243 237;
+
+    --c-gold: 176 137 74;
+    --c-gold-soft: 250 243 231;
+
+    --c-success: 34 122 84;
+    --c-success-soft: 232 245 238;
+    --c-warning: 176 108 20;
+    --c-warning-soft: 253 243 226;
+    --c-danger: 190 51 51;
+    --c-danger-soft: 253 236 236;
+    --c-info: 41 105 168;
+    --c-info-soft: 233 241 250;
+  }
+
+  [data-surface='customer'] {
+    --c-canvas: 251 248 244;
+    --c-surface: 255 255 255;
+    --c-surface-sunken: 246 241 234;
+    --c-surface-raised: 255 255 255;
+    --c-line: 235 228 218;
+    --c-line-strong: 218 208 194;
+
+    --c-ink: 31 36 33;
+    --c-ink-soft: 84 92 87;
+    --c-ink-muted: 137 132 124;
+  }
+
+  [data-surface='kitchen'] {
+    --c-canvas: 15 18 17;
+    --c-surface: 25 30 28;
+    --c-surface-sunken: 19 23 22;
+    --c-surface-raised: 33 39 37;
+    --c-line: 47 55 52;
+    --c-line-strong: 68 78 74;
+
+    --c-ink: 242 246 244;
+    --c-ink-soft: 186 196 191;
+    --c-ink-muted: 138 150 145;
+    --c-ink-inverse: 15 18 17;
+
+    --c-accent: 74 196 140;
+    --c-accent-strong: 52 168 116;
+    --c-accent-soft: 30 52 43;
+
+    --c-success: 74 196 140;
+    --c-success-soft: 27 51 41;
+    --c-warning: 234 168 62;
+    --c-warning-soft: 58 44 20;
+    --c-danger: 240 96 96;
+    --c-danger-soft: 61 27 27;
+    --c-info: 96 165 235;
+    --c-info-soft: 24 40 58;
+  }
+
+  * {
+    @apply border-line;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Focus that is visible without being loud. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent/60 ring-offset-2 ring-offset-canvas;
+  }
+
+  ::selection {
+    background: rgb(var(--c-accent) / 0.18);
+  }
+
+  /* Native controls follow the brand accent rather than the browser's blue. */
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: rgb(var(--c-accent));
+  }
+
+  h1, h2, h3, h4 {
+    @apply text-ink;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Slim, unobtrusive scrollbars in dense management views. */
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-line-strong)) transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--c-line-strong));
+    border-radius: 9999px;
+  }
+  .scrollbar-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .card {
+    @apply rounded-lg border border-line bg-surface shadow-subtle;
+  }
+
+  /* Comfortable minimum tap target on touch devices. */
+  .tap {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded bg-surface-sunken;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--c-surface) / 0.75),
+      transparent
+    );
+  }
+
+  .hairline {
+    @apply border-b border-line;
+  }
+}

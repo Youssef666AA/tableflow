@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+coverage/
+.pgdata/
+.turbo/
+playwright-report/
+test-results/
+apps/web/dev-dist/
+apps/api/prisma/generated/
+
+# Playwright artefacts
+playwright-report/
+test-results/

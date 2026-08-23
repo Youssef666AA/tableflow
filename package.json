@@ -1,0 +1,56 @@
+{
+  "name": "tableflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TableFlow \u2014 Scan. Order. Serve. Premium QR restaurant ordering & operations platform.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev -w @tableflow/api",
+    "dev:web": "npm run dev -w @tableflow/web",
+    "dev:worker": "npm run dev:worker -w @tableflow/api",
+    "db:local": "npm run db:local -w @tableflow/api",
+    "db:generate": "npm run db:generate -w @tableflow/api",
+    "db:migrate": "npm run db:migrate -w @tableflow/api",
+    "db:migrate:create": "npm run db:migrate:create -w @tableflow/api",
+    "db:seed": "npm run db:seed -w @tableflow/api",
+    "db:reset": "npm run db:reset -w @tableflow/api",
+    "build": "npm run build -w @tableflow/shared && npm run build -w @tableflow/api && npm run build -w @tableflow/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
+    "test": "npm run test --workspaces --if-present",
+    "test:unit": "npm run test:unit -w @tableflow/api && npm run test:unit -w @tableflow/web",
+    "test:integration": "npm run test:integration -w @tableflow/api",
+    "test:e2e": "playwright test",
+    "setup": "node scripts/setup.mjs",
+    "predev": "npm run build -w @tableflow/shared",
+    "pretest": "npm run build -w @tableflow/shared",
+    "pretypecheck": "npm run build -w @tableflow/shared"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.12": true,
+    "msgpackr-extract@3.0.4": true,
+    "prisma@6.19.3": true
+  }
+}

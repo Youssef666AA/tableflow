@@ -1,0 +1,71 @@
+{
+  "name": "@tableflow/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "dev:worker": "tsx watch src/worker.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "start:worker": "node dist/worker.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tools.json",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:create": "node scripts/create-migration.mjs",
+    "db:push": "prisma db push --skip-generate",
+    "db:seed": "tsx src/seed/index.ts",
+    "db:reset": "tsx scripts/reset-db.ts",
+    "db:local": "tsx scripts/embedded-postgres.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run src/**/*.unit.test.ts",
+    "test:integration": "vitest run src/**/*.int.test.ts",
+    "test:watch": "vitest"
+  },
+  "prisma": {
+    "seed": "tsx src/seed/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "@tableflow/shared": "*",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.5",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "pdfkit": "^0.15.1",
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1",
+    "zod": "^3.24.1",
+    "prisma": "^6.2.1"
+  },
+  "optionalDependencies": {
+    "bullmq": "^5.34.6",
+    "ioredis": "^5.4.2"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.2",
+    "@electric-sql/pglite-socket": "^0.0.6",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.7.5",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.5",
+    "@types/pdfkit": "^0.13.9",
+    "@types/qrcode": "^1.5.5",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}

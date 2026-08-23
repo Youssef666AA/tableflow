@@ -1,0 +1,23 @@
+# Build context hygiene: never ship local state or secrets into an image.
+node_modules
+**/node_modules
+dist
+**/dist
+build
+coverage
+playwright-report
+test-results
+.pgdata
+**/.pgdata
+.git
+.github
+.env
+.env.local
+**/.env
+**/.env.local
+*.log
+.vscode
+.idea
+docs
+e2e
+README.md
