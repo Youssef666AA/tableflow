@@ -29,6 +29,13 @@ export function createApp(): Express {
 
   if (env.TRUST_PROXY) app.set('trust proxy', 1);
   app.disable('x-powered-by');
+  // Every response here is a per-request, per-credential JSON payload — a table
+  // session's menu, another guest's order, a manager's dashboard. Express's
+  // default weak ETag lets the browser (and any shared cache in front of it)
+  // treat two different callers' responses to the same URL as interchangeable,
+  // which is exactly how a stale "this table session has been closed" error
+  // ends up replayed at a guest whose session is perfectly active again.
+  app.disable('etag');
 
   app.use(
     helmet({
@@ -67,6 +74,15 @@ export function createApp(): Express {
   app.use(express.urlencoded({ extended: false, limit: '64kb' }));
   app.use(cookieParser());
   app.use(requestId);
+
+  // Belt-and-braces alongside disabling etag above: an explicit no-store tells
+  // the browser (and any intermediary) never to keep a copy of an API response,
+  // so a session that closes and reopens can never be answered from a cached
+  // 410 that no longer reflects reality.
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
 
   if (!env.isTest) {
     app.use(

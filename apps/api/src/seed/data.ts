@@ -902,13 +902,22 @@ export interface SeedEmployee {
   branchSlugs: string[];
 }
 
+/**
+ * The six headline demo accounts cover every branch on purpose. Whichever table
+ * a visitor scans, the staff screens must light up — scoping them to one branch
+ * turned "I ordered and nothing appeared" into the most common false bug report.
+ * The two accounts below them stay single-branch so per-branch scoping is still
+ * demonstrable (and testable) on a real login.
+ */
+const ALL_BRANCHES = ['sousse', 'monastir', 'tunis'];
+
 export const EMPLOYEES: SeedEmployee[] = [
   { email: 'owner@tableflow.local', fullName: 'Amira Ben Salah', role: 'OWNER', position: 'Owner', branchSlugs: [] },
-  { email: 'manager@tableflow.local', fullName: 'Youssef Khemiri', role: 'MANAGER', position: 'General manager', branchSlugs: ['sousse'] },
-  { email: 'waiter@tableflow.local', fullName: 'Nadia Jelassi', role: 'WAITER', position: 'Head waiter', branchSlugs: ['sousse'] },
-  { email: 'kitchen@tableflow.local', fullName: 'Mehdi Ayari', role: 'KITCHEN', position: 'Head chef', branchSlugs: ['sousse'] },
-  { email: 'cashier@tableflow.local', fullName: 'Ines Belhadj', role: 'CASHIER', position: 'Cashier', branchSlugs: ['sousse'] },
-  { email: 'inventory@tableflow.local', fullName: 'Walid Chaabane', role: 'INVENTORY', position: 'Stock controller', branchSlugs: ['sousse'] },
+  { email: 'manager@tableflow.local', fullName: 'Youssef Khemiri', role: 'MANAGER', position: 'General manager', branchSlugs: ALL_BRANCHES },
+  { email: 'waiter@tableflow.local', fullName: 'Nadia Jelassi', role: 'WAITER', position: 'Head waiter', branchSlugs: ALL_BRANCHES },
+  { email: 'kitchen@tableflow.local', fullName: 'Mehdi Ayari', role: 'KITCHEN', position: 'Head chef', branchSlugs: ALL_BRANCHES },
+  { email: 'cashier@tableflow.local', fullName: 'Ines Belhadj', role: 'CASHIER', position: 'Cashier', branchSlugs: ALL_BRANCHES },
+  { email: 'inventory@tableflow.local', fullName: 'Walid Chaabane', role: 'INVENTORY', position: 'Stock controller', branchSlugs: ALL_BRANCHES },
   { email: 'admin@tableflow.local', fullName: 'Sami Fourati', role: 'ADMIN', position: 'Operations director', branchSlugs: [] },
   { email: 'manager.monastir@tableflow.local', fullName: 'Rania Hamdi', role: 'MANAGER', position: 'Branch manager', branchSlugs: ['monastir'] },
   { email: 'waiter.tunis@tableflow.local', fullName: 'Oussama Dridi', role: 'WAITER', position: 'Waiter', branchSlugs: ['tunis'] },

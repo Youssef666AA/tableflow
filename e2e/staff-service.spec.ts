@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { API, findBranch, findFreeTable, signIn } from './helpers';
+import { API, findBranch, findFreeTable, selectBranch, signIn } from './helpers';
 
 /**
  * The staff half of the demo story, plus the access-control checks that matter
@@ -30,8 +30,13 @@ test.describe('staff', () => {
 
     const reference = await guest.locator('text=/^#\\d+$/').first().innerText();
 
-    // The kitchen picks it up.
+    // The kitchen picks it up. This account covers every branch, so it must
+    // point itself at the one the guest actually ordered from — the fullscreen
+    // kitchen display has no branch switcher of its own (deliberately, it's a
+    // kiosk screen), so the branch is chosen from the console first.
     await signIn(page, 'kitchen@tableflow.local');
+    await page.goto('/staff');
+    await selectBranch(page, branch.name);
     await page.goto('/staff/kitchen');
     await expect(page.getByRole('heading', { name: /kitchen display/i })).toBeVisible();
 

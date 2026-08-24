@@ -141,6 +141,44 @@ export function onStaffUnauthorized(listener: () => void): () => void {
   return () => unauthorizedListeners.delete(listener);
 }
 
+/**
+ * Codes that mean the table session itself is gone. They are never a page-level
+ * failure: whichever screen the guest happens to be on, the answer is the same —
+ * hand control back to the session shell, which either opens a fresh session or
+ * explains why it cannot. Handling them per page produced dead ends like a bill
+ * screen saying "Something went wrong" with a Retry button that could never work.
+ */
+export const SESSION_LIFECYCLE_CODES = [
+  'SESSION_EXPIRED',
+  'SESSION_CLOSED',
+  'SESSION_BLOCKED',
+  'QR_INVALID',
+  'QR_REVOKED',
+] as const satisfies readonly ApiErrorCode[];
+
+export function isSessionLifecycleError(error: unknown): error is ApiError {
+  return (
+    error instanceof ApiError &&
+    (SESSION_LIFECYCLE_CODES as readonly string[]).includes(error.code)
+  );
+}
+
+export interface SessionLostEvent {
+  /** The token the failing request used, so a stale listener can ignore it. */
+  sessionToken: string;
+  error: ApiError;
+}
+
+const sessionLostListeners = new Set<(event: SessionLostEvent) => void>();
+
+/** Fires whenever any customer request is refused because the session ended. */
+export function onCustomerSessionLost(listener: (event: SessionLostEvent) => void): () => void {
+  sessionLostListeners.add(listener);
+  return () => {
+    sessionLostListeners.delete(listener);
+  };
+}
+
 async function refreshStaffSession(): Promise<boolean> {
   const refreshToken = staffTokens.refresh();
   if (!refreshToken) return false;
@@ -224,7 +262,15 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       unauthorizedListeners.forEach((listener) => listener());
     }
 
-    if (!response.ok) throw await toError(response);
+    if (!response.ok) {
+      const error = await toError(response);
+      // A dead table session is a whole-app condition, not this call's problem.
+      if (typeof credential === 'object' && isSessionLifecycleError(error)) {
+        const event: SessionLostEvent = { sessionToken: credential.session, error };
+        sessionLostListeners.forEach((listener) => listener(event));
+      }
+      throw error;
+    }
     if (response.status === 204) return undefined as T;
     if (blob) return (await response.blob()) as T;
     return (await response.json()) as T;

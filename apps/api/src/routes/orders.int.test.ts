@@ -115,6 +115,21 @@ beforeAll(async () => {
       .map((table) => ({ id: table.id, number: table.number, token: table.qrTokens[0].token })),
   }));
 
+  // These tests exercise pricing, inventory and session logic — not opening
+  // hours — so a branch that happens to be closed at whatever minute this
+  // suite runs must never turn into a spurious RESTAURANT_CLOSED failure.
+  // Force every branch open for the duration of the run.
+  const OPEN_ALL_WEEK = Array.from({ length: 7 }, (_, dayOfWeek) => ({
+    dayOfWeek,
+    closed: false,
+    opensAt: '00:00',
+    closesAt: '23:59',
+  }));
+  await prisma.branch.updateMany({
+    where: { id: { in: rows.map((b) => b.id) } },
+    data: { openingHours: OPEN_ALL_WEEK },
+  });
+
   // A product whose recipe actually consumes stock, so deductions are observable.
   const recipe = await prisma.recipe.findFirst({
     where: { ingredients: { some: {} } },

@@ -68,3 +68,17 @@ export async function signIn(page: Page, email: string): Promise<void> {
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page).not.toHaveURL(/\/staff\/login/);
 }
+
+/**
+ * The demo's headline staff accounts cover every branch, so the branch
+ * switcher opens on whichever comes first alphabetically — not necessarily
+ * the one this test cares about. Pick it explicitly, exactly as a real
+ * multi-branch staff member would after signing in.
+ */
+export async function selectBranch(page: Page, nameFragment: string): Promise<void> {
+  const switcher = page.getByRole('button', { name: /^Branch/ });
+  const isEnabled = await switcher.isEnabled();
+  if (!isEnabled) return; // Single-branch account — nothing to pick.
+  await switcher.click();
+  await page.getByRole('button', { name: new RegExp(nameFragment) }).click();
+}
