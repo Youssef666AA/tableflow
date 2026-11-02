@@ -13,8 +13,10 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, 'src') },
   },
   server: {
+    host: true,          // bind to 0.0.0.0 so LAN devices can reach the dev server
     port: 5173,
     strictPort: true,
+    allowedHosts: true,  // allow requests arriving on the LAN IP (e.g. 192.168.x.x)
     proxy: {
       '/api': { target: apiTarget, changeOrigin: true },
       '/socket.io': { target: apiTarget, ws: true },

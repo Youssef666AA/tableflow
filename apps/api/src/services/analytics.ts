@@ -147,9 +147,48 @@ export async function getSalesSeries(input: RangeInput & { granularity?: 'hour' 
     ORDER BY 1 ASC
   `;
 
+  const resultMap = new Map<number, { revenue: number; orders: number }>();
+  for (const r of rows) {
+    resultMap.set(new Date(r.bucket).getTime(), {
+      revenue: Number(r.revenue),
+      orders: Number(r.orders),
+    });
+  }
+
+  const stepMs = granularity === 'hour' ? 3600 * 1000 : 24 * 3600 * 1000;
+  const cursor = new Date(input.from);
+  if (granularity === 'hour') {
+    cursor.setMinutes(0, 0, 0);
+  } else {
+    cursor.setHours(0, 0, 0, 0);
+  }
+
+  const points: Array<{ bucket: Date; revenue: number; orders: number }> = [];
+  const endMs = input.to.getTime();
+  while (cursor.getTime() <= endMs) {
+    const timeKey = cursor.getTime();
+    let found = resultMap.get(timeKey);
+    if (!found) {
+      for (const [key, val] of resultMap.entries()) {
+        if (Math.abs(key - timeKey) < stepMs / 2) {
+          found = val;
+          break;
+        }
+      }
+    }
+
+    points.push({
+      bucket: new Date(cursor),
+      revenue: found?.revenue ?? 0,
+      orders: found?.orders ?? 0,
+    });
+
+    cursor.setTime(cursor.getTime() + stepMs);
+  }
+
   return {
     granularity,
-    points: rows.map((r) => ({
+    points: points.length >= 2 ? points : rows.map((r) => ({
       bucket: r.bucket,
       revenue: Number(r.revenue),
       orders: Number(r.orders),

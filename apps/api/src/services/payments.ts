@@ -1,5 +1,6 @@
 import type { Request } from 'express';
-import type { PaymentMethod, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { PaymentMethod } from '@prisma/client';
 import { REALTIME_EVENTS, splitEvenly } from '@tableflow/shared';
 import { AppError } from '../lib/errors.js';
 import { nextCounterValue, prisma, type Tx } from '../lib/prisma.js';
@@ -173,11 +174,39 @@ export async function createPayment(params: CreatePaymentParams): Promise<Paymen
   }
 
   const preview = await getSessionBill(params.sessionId);
-  if (preview.billTotal === 0) {
-    throw AppError.conflict('There is nothing to pay for at this table yet.');
-  }
-  if (preview.outstanding === 0) {
-    throw new AppError('ALREADY_PAID', 'This bill has already been settled.');
+
+  // If there is nothing to charge (all orders cancelled, or the bill was already
+  // settled by a concurrent request), return the current bill snapshot so the
+  // frontend can refresh gracefully instead of showing a 409 error.
+  if (preview.billTotal === 0 || preview.outstanding === 0) {
+    const lastPayment =
+      [...preview.payments].reverse().find((p: BillSummary['payments'][number]) => p.status === 'PAID') ??
+      preview.payments[preview.payments.length - 1];
+    return {
+      payment: lastPayment
+        ? {
+            id: lastPayment.id,
+            method: lastPayment.method as import('@prisma/client').PaymentMethod,
+            status: lastPayment.status,
+            amount: lastPayment.amount,
+            tip: lastPayment.tip,
+            reference: null,
+            failureReason: null,
+            processedAt: lastPayment.processedAt ? new Date(lastPayment.processedAt) : null,
+          }
+        : {
+            id: '',
+            method: params.method,
+            status: preview.billTotal === 0 ? 'NOTHING_TO_PAY' : 'PAID',
+            amount: 0,
+            tip: 0,
+            reference: null,
+            failureReason: null,
+            processedAt: null,
+          },
+      bill: preview,
+      receiptId: preview.receiptId,
+    };
   }
 
   const amount = params.amount ?? preview.outstanding;
@@ -205,72 +234,107 @@ export async function createPayment(params: CreatePaymentParams): Promise<Paymen
     };
   }
 
-  const outcome = await prisma.$transaction(async (tx) => {
-    const session = await tx.tableSession.findUniqueOrThrow({
-      where: { id: params.sessionId },
-      select: { id: true, branchId: true, tableId: true, code: true, branch: { select: { restaurantId: true, restaurant: { select: { currency: true } } } } },
-    });
-
-    const payment = await tx.payment.create({
-      data: {
-        branchId: session.branchId,
-        sessionId: session.id,
-        method: params.method,
-        status: providerOutcome.status,
-        amount,
-        tip: params.tip ?? 0,
-        splitParts: params.splitParts ?? 1,
-        currency: session.branch.restaurant.currency,
-        reference: providerOutcome.reference,
-        idempotencyKey: params.idempotencyKey ?? null,
-        processedById: params.processedByUserId ?? null,
-        processedAt: providerOutcome.status === 'PAID' ? new Date() : null,
-        failureReason: providerOutcome.failureReason,
-      },
-    });
-
-    let receiptId: string | null = null;
-
-    if (providerOutcome.status === 'PAID') {
-      const paidTotal = await tx.payment.aggregate({
-        where: { sessionId: session.id, status: 'PAID' },
-        _sum: { amount: true },
+  let outcome;
+  try {
+    outcome = await prisma.$transaction(async (tx) => {
+      const session = await tx.tableSession.findUniqueOrThrow({
+        where: { id: params.sessionId },
+        select: { id: true, branchId: true, tableId: true, code: true, branch: { select: { restaurantId: true, restaurant: { select: { currency: true } } } } },
       });
-      const orders = await tx.order.findMany({
-        where: { sessionId: session.id, status: { in: [...BILLABLE_ORDER_STATUSES] } },
-        select: { id: true, total: true, status: true },
-      });
-      const billTotal = orders.reduce((sum, o) => sum + o.total, 0);
-      const settled = (paidTotal._sum.amount ?? 0) >= billTotal;
 
-      if (settled) {
-        await tx.order.updateMany({
-          where: { sessionId: session.id, status: { in: [...BILLABLE_ORDER_STATUSES] }, paymentId: null },
-          data: { paymentId: payment.id },
+      const payment = await tx.payment.create({
+        data: {
+          branchId: session.branchId,
+          sessionId: session.id,
+          method: params.method,
+          status: providerOutcome.status,
+          amount,
+          tip: params.tip ?? 0,
+          splitParts: params.splitParts ?? 1,
+          currency: session.branch.restaurant.currency,
+          reference: providerOutcome.reference,
+          idempotencyKey: params.idempotencyKey ?? null,
+          processedById: params.processedByUserId ?? null,
+          processedAt: providerOutcome.status === 'PAID' ? new Date() : null,
+          failureReason: providerOutcome.failureReason,
+        },
+      });
+
+      let receiptId: string | null = null;
+
+      if (providerOutcome.status === 'PAID') {
+        const paidTotal = await tx.payment.aggregate({
+          where: { sessionId: session.id, status: 'PAID' },
+          _sum: { amount: true },
         });
-        await tx.order.updateMany({
-          where: { sessionId: session.id, status: 'DELIVERED' },
-          data: { status: 'COMPLETED', completedAt: new Date() },
+        const orders = await tx.order.findMany({
+          where: { sessionId: session.id, status: { in: [...BILLABLE_ORDER_STATUSES] } },
+          select: { id: true, total: true, status: true },
         });
-        receiptId = await issueReceipt(tx, payment.id);
+        const billTotal = orders.reduce((sum, o) => sum + o.total, 0);
+        const settled = (paidTotal._sum.amount ?? 0) >= billTotal;
+
+        if (settled) {
+          await tx.order.updateMany({
+            where: { sessionId: session.id, status: { in: [...BILLABLE_ORDER_STATUSES] }, paymentId: null },
+            data: { paymentId: payment.id },
+          });
+          await tx.order.updateMany({
+            where: { sessionId: session.id, status: 'DELIVERED' },
+            data: { status: 'COMPLETED', completedAt: new Date() },
+          });
+          receiptId = await issueReceipt(tx, payment.id);
+        }
       }
+
+      const tableChange = await recomputeTableStatus(tx, session.tableId);
+
+      await writeAuditTx(tx, {
+        action: providerOutcome.status === 'PAID' ? 'payment.completed' : 'payment.failed',
+        entity: 'Payment',
+        entityId: payment.id,
+        restaurantId: session.branch.restaurantId,
+        branchId: session.branchId,
+        actorType: params.processedByUserId ? 'STAFF' : 'CUSTOMER',
+        actorUserId: params.processedByUserId ?? null,
+        metadata: { method: params.method, amount, tip: params.tip ?? 0, status: providerOutcome.status },
+      });
+
+      return { payment, tableChange, receiptId, session };
+    }, TX_OPTIONS);
+  } catch (err) {
+    // A concurrent payment (e.g. customer and cashier submitting simultaneously)
+    // may have already settled the bill and created the receipt, triggering a
+    // P2002 unique constraint on receipt.number or payment.idempotencyKey.
+    // Treat it as a graceful already-settled response so neither party sees a 409.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      const bill = await getSessionBill(params.sessionId);
+      
+      // Only swallow the error if the race was won by another transaction that actually settled the bill.
+      if (bill.settled) {
+        const lastPayment = [...bill.payments].reverse().find((p) => p.status === 'PAID') ?? bill.payments[bill.payments.length - 1];
+        return {
+          payment: lastPayment
+            ? {
+                id: lastPayment.id,
+                method: lastPayment.method as import('@prisma/client').PaymentMethod,
+                status: lastPayment.status,
+                amount: lastPayment.amount,
+                tip: lastPayment.tip,
+                reference: null,
+                failureReason: null,
+                processedAt: lastPayment.processedAt ? new Date(lastPayment.processedAt) : null,
+              }
+            : { id: '', method: params.method, status: 'PAID', amount: 0, tip: 0, reference: null, failureReason: null, processedAt: null },
+          bill,
+          receiptId: bill.receiptId,
+        };
+      }
+      
+      import('../lib/logger.js').then((m) => m.logger.error({ err }, 'P2002 caught but bill is not settled! (Likely Counter out of sync)'));
     }
-
-    const tableChange = await recomputeTableStatus(tx, session.tableId);
-
-    await writeAuditTx(tx, {
-      action: providerOutcome.status === 'PAID' ? 'payment.completed' : 'payment.failed',
-      entity: 'Payment',
-      entityId: payment.id,
-      restaurantId: session.branch.restaurantId,
-      branchId: session.branchId,
-      actorType: params.processedByUserId ? 'STAFF' : 'CUSTOMER',
-      actorUserId: params.processedByUserId ?? null,
-      metadata: { method: params.method, amount, tip: params.tip ?? 0, status: providerOutcome.status },
-    });
-
-    return { payment, tableChange, receiptId, session };
-  }, TX_OPTIONS);
+    throw err;
+  }
 
   publishTableChange(outcome.tableChange);
 
@@ -379,8 +443,21 @@ async function issueReceipt(tx: Tx, paymentId: string): Promise<string> {
     { subtotal: 0, discountTotal: 0, taxTotal: 0, serviceChargeTotal: 0, total: 0 },
   );
 
-  const sequence = await nextCounterValue(tx, payment.branchId, 'receipt');
-  const number = `R-${new Date().getFullYear()}-${String(sequence).padStart(6, '0')}`;
+  let sequence = await nextCounterValue(tx, payment.branchId, 'receipt');
+  let number = `R-${new Date().getFullYear()}-${String(sequence).padStart(6, '0')}`;
+
+  let exists = await tx.receipt.findFirst({
+    where: { branchId: payment.branchId, number },
+    select: { id: true },
+  });
+  while (exists) {
+    sequence = await nextCounterValue(tx, payment.branchId, 'receipt');
+    number = `R-${new Date().getFullYear()}-${String(sequence).padStart(6, '0')}`;
+    exists = await tx.receipt.findFirst({
+      where: { branchId: payment.branchId, number },
+      select: { id: true },
+    });
+  }
 
   const snapshot = {
     number,
@@ -427,6 +504,11 @@ async function issueReceipt(tx: Tx, paymentId: string): Promise<string> {
     })),
   };
 
+  // Allow P2002 (unique constraint on receipt.number or paymentId) to bubble up
+  // to the outer catch in createPayment, which handles it gracefully using the
+  // top-level prisma client. DO NOT query tx.* inside a catch here — once
+  // receipt.create fails, the PostgreSQL transaction is in an aborted state and
+  // any further tx queries will throw a secondary "transaction aborted" error.
   const receipt = await tx.receipt.create({
     data: {
       number,

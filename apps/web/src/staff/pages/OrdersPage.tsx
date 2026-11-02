@@ -168,7 +168,7 @@ export default function StaffOrdersPage() {
 
   return (
     <Page>
-      <PageHeading title="Orders" description="Every order taken at this branch, guest or staff." />
+      <PageHeading title="Orders" description="Every order taken, guest or staff." />
 
       <FilterBar
         search={search}

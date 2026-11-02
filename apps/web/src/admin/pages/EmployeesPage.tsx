@@ -133,7 +133,7 @@ export default function EmployeesPage() {
     setOpen(true);
   };
 
-  const columns: Column<AdminEmployee>[] = [
+  const baseColumns: Column<AdminEmployee>[] = [
     {
       key: 'name',
       header: 'Employee',
@@ -196,6 +196,9 @@ export default function EmployeesPage() {
       ),
     },
   ];
+
+  const columns =
+    (user?.branches.length ?? 0) > 1 ? baseColumns : baseColumns.filter((col) => col.key !== 'branches');
 
   const permissionCount = ROLE_PERMISSIONS[draft.role]?.length ?? 0;
 
@@ -339,28 +342,30 @@ export default function EmployeesPage() {
             />
           </Field>
 
-          <Field label="Branches" description="Leave all unchecked to grant every branch.">
-            <div className="space-y-1.5">
-              {user?.branches.map((branch) => (
-                <label key={branch.id} className="flex cursor-pointer items-center gap-2.5 text-sm text-ink-soft">
-                  <input
-                    type="checkbox"
-                    checked={draft.branchIds.includes(branch.id)}
-                    onChange={(event) =>
-                      setDraft({
-                        ...draft,
-                        branchIds: event.target.checked
-                          ? [...draft.branchIds, branch.id]
-                          : draft.branchIds.filter((id) => id !== branch.id),
-                      })
-                    }
-                    className="size-4 rounded border-line-strong text-accent focus:ring-accent/40"
-                  />
-                  {branch.name}
-                </label>
-              ))}
-            </div>
-          </Field>
+          {(user?.branches.length ?? 0) > 1 && (
+            <Field label="Branches" description="Leave all unchecked to grant every branch.">
+              <div className="space-y-1.5">
+                {user?.branches.map((branch) => (
+                  <label key={branch.id} className="flex cursor-pointer items-center gap-2.5 text-sm text-ink-soft">
+                    <input
+                      type="checkbox"
+                      checked={draft.branchIds.includes(branch.id)}
+                      onChange={(event) =>
+                        setDraft({
+                          ...draft,
+                          branchIds: event.target.checked
+                            ? [...draft.branchIds, branch.id]
+                            : draft.branchIds.filter((id) => id !== branch.id),
+                        })
+                      }
+                      className="size-4 rounded border-line-strong text-accent focus:ring-accent/40"
+                    />
+                    {branch.name}
+                  </label>
+                ))}
+              </div>
+            </Field>
+          )}
 
           {editing && (
             <>

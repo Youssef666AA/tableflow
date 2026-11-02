@@ -107,7 +107,13 @@ billingRouter.post(
       req,
     });
 
-    res.status(result.payment.status === 'PAID' ? 201 : 402).json(result);
+    // 201 for a newly created payment, 200 when the bill was already settled
+    // or had nothing to pay (idempotent paths), 402 when the provider declined.
+    const httpStatus =
+      result.payment.status === 'PAID' && result.payment.id !== '' ? 201
+      : result.payment.status === 'PAID' || result.payment.status === 'NOTHING_TO_PAY' ? 200
+      : 402;
+    res.status(httpStatus).json(result);
   }),
 );
 

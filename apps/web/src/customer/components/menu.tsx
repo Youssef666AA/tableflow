@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Minus, Plus, Sparkles, Star } from 'lucide-react';
+import { ArrowLeft, Flame, Minus, Plus, Sparkles, Star, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { money } from '@/lib/format';
 import { Badge, Button, Textarea } from '@/components/ui/primitives';
@@ -224,6 +224,12 @@ export function ProductSheet({
   onClose: () => void;
   onAdd: (line: Omit<CartLine, 'key'>) => void;
 }) {
+  const lastProductRef = useRef<MenuProduct | null>(null);
+  if (product) {
+    lastProductRef.current = product;
+  }
+  const displayProduct = product ?? lastProductRef.current;
+
   const [selection, setSelection] = useState<Selection>({
     variantId: null,
     optionIds: new Set(),
@@ -253,19 +259,19 @@ export function ProductSheet({
   }, [product]);
 
   const unitPrice = useMemo(() => {
-    if (!product) return 0;
-    const variant = product.variants.find((v) => v.id === selection.variantId);
-    const modifiers = product.modifierGroups
+    if (!displayProduct) return 0;
+    const variant = displayProduct.variants.find((v) => v.id === selection.variantId);
+    const modifiers = displayProduct.modifierGroups
       .flatMap((group) => group.options)
       .filter((option) => selection.optionIds.has(option.id))
       .reduce((sum, option) => sum + option.priceDelta, 0);
-    return product.basePrice + (variant?.priceDelta ?? 0) + modifiers;
-  }, [product, selection]);
+    return displayProduct.basePrice + (variant?.priceDelta ?? 0) + modifiers;
+  }, [displayProduct, selection]);
 
   const groupErrors = useMemo(() => {
-    if (!product) return new Map<string, string>();
+    if (!displayProduct) return new Map<string, string>();
     const errors = new Map<string, string>();
-    for (const group of product.modifierGroups) {
+    for (const group of displayProduct.modifierGroups) {
       const chosen = group.options.filter((option) => selection.optionIds.has(option.id)).length;
       const min = group.required ? Math.max(1, group.minSelect) : group.minSelect;
       const max = group.selectionType === 'SINGLE' ? 1 : (group.maxSelect ?? group.options.length);
@@ -273,9 +279,9 @@ export function ProductSheet({
       else if (chosen > max) errors.set(group.id, `Choose at most ${max}`);
     }
     return errors;
-  }, [product, selection]);
+  }, [displayProduct, selection]);
 
-  if (!product) return null;
+  if (!displayProduct) return null;
 
   const toggleOption = (group: MenuProduct['modifierGroups'][number], optionId: string) => {
     setSelection((current) => {
@@ -298,15 +304,15 @@ export function ProductSheet({
     setAttemptedAdd(true);
     if (groupErrors.size > 0) return;
 
-    const variant = product.variants.find((v) => v.id === selection.variantId) ?? null;
-    const chosen = product.modifierGroups
+    const variant = displayProduct.variants.find((v) => v.id === selection.variantId) ?? null;
+    const chosen = displayProduct.modifierGroups
       .flatMap((group) => group.options)
       .filter((option) => selection.optionIds.has(option.id));
 
     onAdd({
-      productId: product.id,
-      productName: product.name,
-      imageUrl: product.imageUrl,
+      productId: displayProduct.id,
+      productName: displayProduct.name,
+      imageUrl: displayProduct.imageUrl,
       variantId: variant?.id ?? null,
       variantName: variant?.name ?? null,
       quantity: selection.quantity,
@@ -324,7 +330,18 @@ export function ProductSheet({
       onClose={onClose}
       size="lg"
       footer={
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
+            onClick={onClose}
+            aria-label="Back to menu"
+            className="shrink-0 px-3.5 text-ink hover:bg-surface-sunken"
+          >
+            <ArrowLeft className="mr-1.5 size-4" />
+            <span className="text-xs font-semibold">Back</span>
+          </Button>
           <QuantityStepper
             value={selection.quantity}
             onChange={(quantity) => setSelection((current) => ({ ...current, quantity }))}
@@ -338,42 +355,66 @@ export function ProductSheet({
         </div>
       }
     >
-      <div className="h-52 w-full sm:h-56">
-        <FoodImage name={product.name} src={product.imageUrl} rounded="rounded-none" eager />
+      <div className="relative h-56 w-full sm:h-64">
+        <FoodImage name={displayProduct.name} src={displayProduct.imageUrl} rounded="rounded-none" eager />
+
+        {/* Top gradient shadow for button contrast */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 via-black/20 to-transparent" />
+
+        {/* Top-left "Back to menu" button */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Back to menu"
+          className="absolute left-3.5 top-3.5 z-20 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-neutral-900 shadow-md backdrop-blur-md transition-all active:scale-95 hover:bg-white focus:outline-none focus:ring-2 focus:ring-accent dark:bg-neutral-900/90 dark:text-white"
+        >
+          <ArrowLeft className="size-4" strokeWidth={2.4} />
+          <span>Back</span>
+        </button>
+
+        {/* Top-right "Close" button */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-3.5 top-3.5 z-20 flex size-8 items-center justify-center rounded-full bg-white/95 text-neutral-900 shadow-md backdrop-blur-md transition-all active:scale-95 hover:bg-white focus:outline-none focus:ring-2 focus:ring-accent dark:bg-neutral-900/90 dark:text-white"
+        >
+          <X className="size-4" strokeWidth={2.4} />
+        </button>
       </div>
 
       <div className="px-5 pb-6 pt-5">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="font-display text-[1.375rem] font-semibold leading-tight text-ink">{product.name}</h2>
-          <p className="tabular shrink-0 text-lg font-semibold text-ink">{money(product.basePrice, currency)}</p>
+          <h2 className="font-display text-[1.375rem] font-semibold leading-tight text-ink">{displayProduct.name}</h2>
+          <p className="tabular shrink-0 text-lg font-semibold text-ink">{money(displayProduct.basePrice, currency)}</p>
         </div>
 
-        {product.description && (
-          <p className="mt-2 text-sm leading-relaxed text-ink-muted">{product.description}</p>
+        {displayProduct.description && (
+          <p className="mt-2 text-sm leading-relaxed text-ink-muted">{displayProduct.description}</p>
         )}
 
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          {product.popular && <Badge tone="gold" size="sm">Popular</Badge>}
-          {product.tags.map((tag) => (
+          {displayProduct.popular && <Badge tone="gold" size="sm">Popular</Badge>}
+          {displayProduct.tags.map((tag) => (
             <Badge key={tag} size="sm">{tag}</Badge>
           ))}
-          <Badge size="sm" tone="neutral">~{product.prepTimeMinutes} min</Badge>
-          {product.calories != null && <Badge size="sm">{product.calories} kcal</Badge>}
+          <Badge size="sm" tone="neutral">~{displayProduct.prepTimeMinutes} min</Badge>
+          {displayProduct.calories != null && <Badge size="sm">{displayProduct.calories} kcal</Badge>}
         </div>
 
-        {product.allergens.length > 0 && (
+        {displayProduct.allergens.length > 0 && (
           <p className="mt-3 text-xs text-ink-muted">
-            <span className="font-medium text-ink-soft">Allergens:</span> {product.allergens.join(', ')}
+            <span className="font-medium text-ink-soft">Allergens:</span> {displayProduct.allergens.join(', ')}
           </p>
         )}
 
-        {product.variants.length > 0 && (
+        {displayProduct.variants.length > 0 && (
           <OptionGroup
             title="Choose an option"
             required
             error={null}
           >
-            {product.variants.map((variant) => (
+            {displayProduct.variants.map((variant) => (
               <OptionRow
                 key={variant.id}
                 type="radio"
@@ -389,7 +430,7 @@ export function ProductSheet({
           </OptionGroup>
         )}
 
-        {product.modifierGroups.map((group) => {
+        {displayProduct.modifierGroups.map((group) => {
           const error = attemptedAdd ? (groupErrors.get(group.id) ?? null) : null;
           const max = group.selectionType === 'SINGLE' ? 1 : (group.maxSelect ?? group.options.length);
           return (

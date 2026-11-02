@@ -89,16 +89,53 @@ function write(key: string, value: string | null): void {
   }
 }
 
+/**
+ * Staff tokens use tab-isolated sessionStorage so developers and operators can
+ * open different roles (e.g. Owner in Tab 1, Waiter in Tab 2, Kitchen in Tab 3)
+ * simultaneously in the same browser without tabs overwriting each other.
+ */
+function readStaff(key: string): string | null {
+  try {
+    const sessionVal = window.sessionStorage.getItem(key);
+    if (sessionVal) return sessionVal;
+
+    // Migrate from legacy localStorage if present, then clear from localStorage
+    const localVal = window.localStorage.getItem(key);
+    if (localVal) {
+      window.sessionStorage.setItem(key, localVal);
+      window.localStorage.removeItem(key);
+      return localVal;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStaff(key: string, value: string | null): void {
+  try {
+    if (value === null) {
+      window.sessionStorage.removeItem(key);
+      window.localStorage.removeItem(key);
+    } else {
+      window.sessionStorage.setItem(key, value);
+      window.localStorage.removeItem(key);
+    }
+  } catch {
+    // Private-mode browsers can refuse storage; the app still works for one page view.
+  }
+}
+
 export const staffTokens = {
-  access: () => read(STAFF_ACCESS_KEY),
-  refresh: () => read(STAFF_REFRESH_KEY),
+  access: () => readStaff(STAFF_ACCESS_KEY),
+  refresh: () => readStaff(STAFF_REFRESH_KEY),
   set(accessToken: string, refreshToken: string) {
-    write(STAFF_ACCESS_KEY, accessToken);
-    write(STAFF_REFRESH_KEY, refreshToken);
+    writeStaff(STAFF_ACCESS_KEY, accessToken);
+    writeStaff(STAFF_REFRESH_KEY, refreshToken);
   },
   clear() {
-    write(STAFF_ACCESS_KEY, null);
-    write(STAFF_REFRESH_KEY, null);
+    writeStaff(STAFF_ACCESS_KEY, null);
+    writeStaff(STAFF_REFRESH_KEY, null);
   },
 };
 

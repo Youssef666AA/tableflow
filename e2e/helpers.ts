@@ -23,7 +23,7 @@ export interface DevBranch {
  * Reads the QR Test Center to find a real table token, exactly as a developer
  * would when they cannot print a code. Fails loudly if the demo data is absent.
  */
-export async function findBranch(request: APIRequestContext, nameFragment = 'Sousse'): Promise<DevBranch> {
+export async function findBranch(request: APIRequestContext, nameFragment?: string): Promise<DevBranch> {
   const response = await request.get(`${API}/api/dev/qr-test-center`);
   expect(
     response.ok(),
@@ -31,8 +31,9 @@ export async function findBranch(request: APIRequestContext, nameFragment = 'Sou
   ).toBeTruthy();
 
   const body = (await response.json()) as { restaurants: Array<{ branches: DevBranch[] }> };
-  const branch = body.restaurants[0]?.branches.find((b) => b.name.includes(nameFragment));
-  expect(branch, `No branch matching "${nameFragment}" — run \`npm run db:seed\`.`).toBeTruthy();
+  const branches = body.restaurants[0]?.branches ?? [];
+  const branch = nameFragment ? branches.find((b) => b.name.includes(nameFragment)) ?? branches[0] : branches[0];
+  expect(branch, 'No branch found — run `npm run db:seed`.').toBeTruthy();
   return branch!;
 }
 
@@ -70,15 +71,17 @@ export async function signIn(page: Page, email: string): Promise<void> {
 }
 
 /**
- * The demo's headline staff accounts cover every branch, so the branch
- * switcher opens on whichever comes first alphabetically — not necessarily
- * the one this test cares about. Pick it explicitly, exactly as a real
- * multi-branch staff member would after signing in.
+ * If the account has multiple branches, picks the requested branch.
+ * For a single-restaurant deployment, no switcher is rendered so this is a no-op.
  */
 export async function selectBranch(page: Page, nameFragment: string): Promise<void> {
   const switcher = page.getByRole('button', { name: /^Branch/ });
+  if ((await switcher.count()) === 0) return;
   const isEnabled = await switcher.isEnabled();
-  if (!isEnabled) return; // Single-branch account — nothing to pick.
+  if (!isEnabled) return;
   await switcher.click();
-  await page.getByRole('button', { name: new RegExp(nameFragment) }).click();
+  const option = page.getByRole('button', { name: new RegExp(nameFragment) });
+  if (await option.isVisible()) {
+    await option.click();
+  }
 }

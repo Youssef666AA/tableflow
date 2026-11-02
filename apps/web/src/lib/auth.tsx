@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [hasToken, setHasToken] = useState(() => Boolean(staffTokens.access()));
   const [branchId, setBranchIdState] = useState<string>(() => {
     try {
-      return window.localStorage.getItem(BRANCH_KEY) ?? '';
+      return window.sessionStorage.getItem(BRANCH_KEY) ?? window.localStorage.getItem(BRANCH_KEY) ?? '';
     } catch {
       return '';
     }
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const next = allowed[0];
       setBranchIdState(next);
       try {
-        window.localStorage.setItem(BRANCH_KEY, next);
+        window.sessionStorage.setItem(BRANCH_KEY, next); window.localStorage.removeItem(BRANCH_KEY);
       } catch {
         // Non-fatal: the choice simply will not persist.
       }
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (id: string) => {
       setBranchIdState(id);
       try {
-        window.localStorage.setItem(BRANCH_KEY, id);
+        window.sessionStorage.setItem(BRANCH_KEY, id); window.localStorage.removeItem(BRANCH_KEY);
       } catch {
         // Non-fatal.
       }

@@ -204,7 +204,10 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={sales.data?.series.points.map((point) => ({
-                      label: new Date(point.bucket).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+                      label:
+                        sales.data?.series.granularity === 'hour'
+                          ? new Date(point.bucket).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                          : new Date(point.bucket).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
                       revenue: point.revenue / 1000,
                       orders: point.orders,
                     }))}
@@ -219,8 +222,8 @@ export default function AnalyticsPage() {
                       dataKey="revenue"
                       stroke={CHART_COLORS[0]}
                       strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 4 }}
+                      dot={{ r: 3, fill: CHART_COLORS[0] }}
+                      activeDot={{ r: 5 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>

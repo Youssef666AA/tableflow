@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Banknote, CreditCard, Download, Receipt, Users, Wallet } from 'lucide-react';
@@ -94,6 +94,10 @@ export default function BillingPage() {
     queryKey: ['billing', 'session', sessionId, splitParts],
     queryFn: () => api.get<Bill>(`/billing/sessions/${sessionId}?splitParts=${splitParts}`),
     enabled: Boolean(sessionId),
+    // Poll every 10 s so the UI stays in sync when another cashier or the
+    // customer settles the bill concurrently.
+    refetchInterval: 10_000,
+    staleTime: 0,
   });
 
   useRealtimeInvalidation(
@@ -113,29 +117,58 @@ export default function BillingPage() {
     if (bill) setAmount(String((bill.outstanding / 1000).toFixed(3)));
   }, [bill?.outstanding, bill]);
 
-  const takePayment = useMutation({
+  /** Parsed integer amount in the smallest currency unit (e.g. millièmes). */
+  const amountInt = useMemo(() => Math.round(Number(amount) * 1000), [amount]);
+  const amountExceedsOutstanding = bill ? amountInt > bill.outstanding : false;
+
+  type PaymentResult = { bill?: Bill; payment?: { id?: string; status?: string } };
+
+  const takePayment = useMutation<PaymentResult>({
     mutationFn: () =>
-      api.post(`/billing/sessions/${sessionId}/payments`, {
+      api.post<PaymentResult>(`/billing/sessions/${sessionId}/payments`, {
         method,
-        amount: Math.round(Number(amount) * 1000),
+        amount: amountInt,
         tip: Math.round(Number(tip || '0') * 1000),
         splitParts,
         idempotencyKey: newIdempotencyKey(),
       }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['billing'] });
+    onSuccess: (result) => {
+      // Immediately update the bill cache with the server's fresh response so
+      // the UI reflects the real state without waiting for the next poll.
+      if (result?.bill && sessionId) {
+        queryClient.setQueryData(['billing', 'session', sessionId, splitParts], result.bill);
+      }
+      void queryClient.invalidateQueries({ queryKey: ['billing', 'open', branchId] });
       void queryClient.invalidateQueries({ queryKey: ['tables'] });
-      toast.success('Payment recorded');
+
+      const status = result?.payment?.status;
+      if (status === 'NOTHING_TO_PAY') {
+        toast.success('No orders to pay', 'All orders on this table were cancelled.');
+      } else if (result?.bill?.settled) {
+        // Could be a new payment that just settled the bill, or a race where
+        // another cashier got there first — either way, the bill is paid.
+        toast.success('Bill settled ✓');
+      } else {
+        toast.success('Payment recorded');
+      }
     },
-    onError: (error) =>
-      toast.error('Could not record that payment', error instanceof ApiError ? error.message : 'Please try again.'),
+    onError: (error) => {
+      toast.error('Could not record that payment', error instanceof ApiError ? error.message : 'Please try again.');
+    },
   });
+
+  const canSubmit =
+    !takePayment.isPending &&
+    amountInt > 0 &&
+    !amountExceedsOutstanding &&
+    bill != null &&
+    !bill.settled;
 
   const tabs = tabsQuery.data?.tabs ?? [];
 
   return (
     <Page>
-      <PageHeading title="Billing" description="Open tabs and settled receipts for this branch." />
+      <PageHeading title="Billing" description="Open tabs and settled receipts." />
 
       <div className="grid gap-5 lg:grid-cols-[22rem_1fr]">
         <section className="min-w-0">
@@ -152,7 +185,7 @@ export default function BillingPage() {
             <EmptyState
               icon={<Wallet className="size-5" />}
               title="No open tabs"
-              description="Everything at this branch has been settled."
+              description="Everything has been settled."
               compact
             />
           )}
@@ -387,11 +420,20 @@ export default function BillingPage() {
                     )}
                   </div>
 
+                  {amountExceedsOutstanding && (
+                    <p className="mt-2 text-xs text-danger">
+                      Amount exceeds the outstanding balance of {money(bill.outstanding, currency)}.
+                    </p>
+                  )}
+                  {amountInt <= 0 && !amountExceedsOutstanding && (
+                    <p className="mt-2 text-xs text-ink-muted">Enter an amount greater than zero.</p>
+                  )}
                   <Button
                     fullWidth
                     size="lg"
                     className="mt-4"
                     loading={takePayment.isPending}
+                    disabled={!canSubmit}
                     onClick={() => takePayment.mutate()}
                   >
                     Record {method === 'CASH' ? 'cash' : 'card'} payment

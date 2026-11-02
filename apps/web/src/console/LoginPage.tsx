@@ -136,7 +136,10 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-8 rounded-lg border border-line bg-surface-sunken/60 p-4">
-            <p className="text-2xs font-semibold uppercase tracking-wider text-ink-muted">Demo accounts</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xs font-semibold uppercase tracking-wider text-ink-muted">Demo accounts</p>
+              <span className="text-2xs font-medium text-accent-strong">Tab-isolated</span>
+            </div>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {DEMO_ACCOUNTS.map((account) => (
                 <button
@@ -150,8 +153,7 @@ export default function LoginPage() {
               ))}
             </div>
             <p className="mt-2.5 text-2xs text-ink-muted">
-              Password <code className="tabular font-medium text-ink-soft">{DEMO_PASSWORD}</code> — seeded
-              development credentials only.
+              Password <code className="tabular font-medium text-ink-soft">{DEMO_PASSWORD}</code> — Open multiple tabs to test Owner, Waiter & Kitchen at the same time.
             </p>
           </div>
         </motion.div>

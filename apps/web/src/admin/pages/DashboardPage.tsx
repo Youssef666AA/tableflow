@@ -112,7 +112,7 @@ export default function AdminDashboardPage() {
     <Page>
       <PageHeading
         title="Dashboard"
-        description={`${user?.restaurant.name} · ${scope === 'all' ? 'all branches' : 'this branch'}`}
+        description={(user?.branches.length ?? 0) > 1 ? `${user?.restaurant.name} · ${scope === 'all' ? 'all branches' : 'this branch'}` : user?.restaurant.name ?? 'Overview'}
         actions={
           <div className="flex flex-wrap gap-2">
             {(user?.branches.length ?? 0) > 1 && (
@@ -237,6 +237,8 @@ export default function AdminDashboardPage() {
                   stroke={CHART_COLORS[0]}
                   strokeWidth={2}
                   fill="url(#revenueFill)"
+                  dot={{ r: 3, fill: CHART_COLORS[0] }}
+                  activeDot={{ r: 5 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -247,38 +249,40 @@ export default function AdminDashboardPage() {
           {categoryData.length === 0 ? (
             <EmptyState title="Nothing sold yet" compact />
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius="52%"
-                  outerRadius="80%"
-                  paddingAngle={2}
-                  stroke="none"
-                >
-                  {categoryData.map((_, index) => (
-                    <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip content={<ChartTooltip currency={currency} valueKey="value" scale={1000} />} />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-          {categoryData.length > 0 && (
-            <ul className="-mt-4 flex flex-wrap justify-center gap-x-3 gap-y-1 px-3">
-              {categoryData.map((entry, index) => (
-                <li key={entry.name} className="inline-flex items-center gap-1.5 text-2xs text-ink-muted">
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                    aria-hidden
-                  />
-                  {entry.name}
-                </li>
-              ))}
-            </ul>
+            <div className="flex h-full flex-col">
+              <div className="min-h-0 flex-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius="50%"
+                      outerRadius="78%"
+                      paddingAngle={2}
+                      stroke="none"
+                    >
+                      {categoryData.map((_, index) => (
+                        <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<ChartTooltip currency={currency} valueKey="value" scale={1000} />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 px-3 pt-1">
+                {categoryData.map((entry, index) => (
+                  <li key={entry.name} className="inline-flex items-center gap-1.5 text-2xs text-ink-muted">
+                    <span
+                      className="size-2 rounded-full"
+                      style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                      aria-hidden
+                    />
+                    {entry.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </ChartCard>
 

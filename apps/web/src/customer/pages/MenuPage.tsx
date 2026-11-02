@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search, UtensilsCrossed, X } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -17,10 +18,10 @@ export default function MenuPage() {
   const auth = useSessionAuth();
   const cart = useCart();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [selected, setSelected] = useState<MenuProduct | null>(null);
 
   const debouncedSearch = useDebounced(search, 250);
 
@@ -31,6 +32,50 @@ export default function MenuPage() {
   });
 
   const menu = query.data;
+
+  // Track selected product via URL search param (?dish=id) so the phone's native hardware/browser Back button
+  // closes the product view and restores the previous menu UI instead of leaving the page.
+  const selectedDishId = searchParams.get('dish');
+  const [activeProduct, setActiveProduct] = useState<MenuProduct | null>(null);
+
+  useEffect(() => {
+    if (!selectedDishId) {
+      setActiveProduct(null);
+    } else if (menu) {
+      const match = menu.products.find((p) => p.id === selectedDishId);
+      if (match) setActiveProduct(match);
+    }
+  }, [selectedDishId, menu]);
+
+  const handleOpenProduct = (product: MenuProduct) => {
+    setActiveProduct(product);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('dish', product.id);
+        return next;
+      },
+      { replace: false },
+    );
+  };
+
+  const handleCloseProduct = () => {
+    setActiveProduct(null);
+    if (searchParams.has('dish')) {
+      if (window.history.state && window.history.state.idx > 0) {
+        window.history.back();
+      } else {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete('dish');
+            return next;
+          },
+          { replace: true },
+        );
+      }
+    }
+  };
 
   const filtered = useMemo(() => {
     if (!menu) return [];
@@ -128,14 +173,14 @@ export default function MenuPage() {
         <>
           {!searching && !categoryId && featured.length > 0 && (
             <div className="-mx-4 mt-4">
-              <FeaturedRail products={featured} currency={currency} onOpen={setSelected} />
+              <FeaturedRail products={featured} currency={currency} onOpen={handleOpenProduct} />
             </div>
           )}
 
           {!searching && !categoryId && popular.length > 0 && (
             <Section title="Popular right now">
               {popular.map((product) => (
-                <ProductCard key={product.id} product={product} currency={currency} onOpen={setSelected} />
+                <ProductCard key={product.id} product={product} currency={currency} onOpen={handleOpenProduct} />
               ))}
             </Section>
           )}
@@ -144,7 +189,7 @@ export default function MenuPage() {
             filtered.length > 0 ? (
               <Section title={`${filtered.length} result${filtered.length === 1 ? '' : 's'}`}>
                 {filtered.map((product) => (
-                  <ProductCard key={product.id} product={product} currency={currency} onOpen={setSelected} />
+                  <ProductCard key={product.id} product={product} currency={currency} onOpen={handleOpenProduct} />
                 ))}
               </Section>
             ) : (
@@ -159,7 +204,7 @@ export default function MenuPage() {
             grouped.map(({ category, products }) => (
               <Section key={category.id} title={category.name} description={category.description}>
                 {products.map((product) => (
-                  <ProductCard key={product.id} product={product} currency={currency} onOpen={setSelected} />
+                  <ProductCard key={product.id} product={product} currency={currency} onOpen={handleOpenProduct} />
                 ))}
               </Section>
             ))
@@ -177,10 +222,10 @@ export default function MenuPage() {
       )}
 
       <ProductSheet
-        product={selected}
+        product={activeProduct}
         currency={currency}
-        open={selected !== null}
-        onClose={() => setSelected(null)}
+        open={activeProduct !== null}
+        onClose={handleCloseProduct}
         onAdd={(line) => {
           cart.add(line);
           toast.success(`${line.quantity} × ${line.productName} added`, 'Tap the cart when you are ready.');

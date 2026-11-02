@@ -199,7 +199,7 @@ export default function WaiterPage() {
       {tables.length === 0 && tablesQuery.isSuccess && (
         <EmptyState
           icon={<Utensils className="size-5" />}
-          title="No tables in this branch yet"
+          title="No tables yet"
           description="A manager can add tables and print QR codes from the management console."
         />
       )}

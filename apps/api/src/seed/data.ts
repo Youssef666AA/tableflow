@@ -31,6 +31,7 @@ export interface SeedProduct {
   category: string;
   station: string;
   prepTimeMinutes: number;
+  imageUrl?: string;
   popular?: boolean;
   featured?: boolean;
   status?: 'AVAILABLE' | 'UNAVAILABLE' | 'HIDDEN';
@@ -137,6 +138,7 @@ export const PRODUCTS: SeedProduct[] = [
   /* ---------------------------------------------------------- breakfast */
   {
     name: 'Big Ben Breakfast',
+    imageUrl: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=800&q=80',
     description: 'Two eggs your way, turkey bacon, grilled tomato, sautéed mushrooms and sourdough toast.',
     basePrice: 18500,
     category: 'Breakfast',
@@ -172,6 +174,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Avocado Toast',
+    imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80',
     description: 'Smashed avocado, chilli flakes, lemon and toasted sourdough. Add a poached egg.',
     basePrice: 14500,
     category: 'Breakfast',
@@ -200,6 +203,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Shakshuka',
+    imageUrl: 'https://images.unsplash.com/photo-1590412200988-a436970781fa?auto=format&fit=crop&w=800&q=80',
     description: 'Eggs baked in a spiced tomato and pepper sauce, finished with parsley and crusty bread.',
     basePrice: 16000,
     category: 'Breakfast',
@@ -217,6 +221,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Pancake Stack',
+    imageUrl: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=800&q=80',
     description: 'Three buttermilk pancakes, maple syrup and seasonal fruit.',
     basePrice: 13500,
     category: 'Breakfast',
@@ -228,6 +233,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Greek Yoghurt Bowl',
+    imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80',
     description: 'Thick yoghurt, honey, toasted almonds and berries.',
     basePrice: 11000,
     category: 'Breakfast',
@@ -241,6 +247,7 @@ export const PRODUCTS: SeedProduct[] = [
   /* -------------------------------------------------------------- pizza */
   {
     name: 'Margherita',
+    imageUrl: 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?auto=format&fit=crop&w=800&q=80',
     description: 'San Marzano tomato, fior di latte mozzarella, fresh basil, extra virgin olive oil.',
     basePrice: 19000,
     category: 'Pizza',
@@ -264,6 +271,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Quattro Formaggi',
+    imageUrl: 'https://images.unsplash.com/photo-1573821663912-569905455b1c?auto=format&fit=crop&w=800&q=80',
     description: 'Mozzarella, gorgonzola, parmesan and scamorza with a drizzle of honey.',
     basePrice: 24000,
     category: 'Pizza',
@@ -284,6 +292,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Merguez & Peppers',
+    imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80',
     description: 'Spicy merguez sausage, roasted peppers, red onion and harissa oil.',
     basePrice: 26500,
     category: 'Pizza',
@@ -307,6 +316,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Tonno e Cipolla',
+    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80',
     description: 'Tuna, red onion, capers and oregano on a light tomato base.',
     basePrice: 23500,
     category: 'Pizza',
@@ -323,6 +333,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Vegetariana',
+    imageUrl: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80',
     description: 'Courgette, aubergine, peppers, cherry tomato and rocket.',
     basePrice: 21500,
     category: 'Pizza',
@@ -339,6 +350,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Diavola',
+    imageUrl: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=800&q=80',
     description: 'Spicy salami, mozzarella, chilli and tomato.',
     basePrice: 24500,
     category: 'Pizza',
@@ -357,6 +369,7 @@ export const PRODUCTS: SeedProduct[] = [
   /* ------------------------------------------------------------ burgers */
   {
     name: 'Double Beef Burger',
+    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
     description: 'Two 75 g patties, double cheddar, pickles, lettuce, tomato and house burger sauce.',
     basePrice: 27500,
     category: 'Burgers',
@@ -379,6 +392,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Classic Cheeseburger',
+    imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
     description: 'Single patty, cheddar, lettuce, tomato, onion and house sauce.',
     basePrice: 19500,
     category: 'Burgers',
@@ -397,6 +411,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Crispy Chicken Burger',
+    imageUrl: 'https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?auto=format&fit=crop&w=800&q=80',
     description: 'Buttermilk-fried chicken thigh, slaw, pickles and chipotle mayo.',
     basePrice: 22000,
     category: 'Burgers',
@@ -413,6 +428,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Mushroom Swiss Burger',
+    imageUrl: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80',
     description: 'Beef patty, sautéed mushrooms, Swiss cheese and garlic aioli.',
     basePrice: 24000,
     category: 'Burgers',
@@ -430,6 +446,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Veggie Halloumi Burger',
+    imageUrl: 'https://images.unsplash.com/photo-1520072959219-c595dc870360?auto=format&fit=crop&w=800&q=80',
     description: 'Grilled halloumi, roasted pepper, rocket and sun-dried tomato pesto.',
     basePrice: 20500,
     category: 'Burgers',
@@ -444,6 +461,7 @@ export const PRODUCTS: SeedProduct[] = [
   /* -------------------------------------------------------------- pasta */
   {
     name: 'Chicken Alfredo',
+    imageUrl: 'https://images.unsplash.com/photo-1645112411341-6c4fd023714a?auto=format&fit=crop&w=800&q=80',
     description: 'Fettuccine, grilled chicken, parmesan cream and cracked pepper.',
     basePrice: 24500,
     category: 'Pasta',
@@ -462,6 +480,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Spaghetti Bolognese',
+    imageUrl: 'https://images.unsplash.com/photo-1598866594230-a7c12756260f?auto=format&fit=crop&w=800&q=80',
     description: 'Slow-cooked beef ragù, tomato, herbs and parmesan.',
     basePrice: 22500,
     category: 'Pasta',
@@ -478,6 +497,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Penne Arrabbiata',
+    imageUrl: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=800&q=80',
     description: 'Garlic, chilli and tomato — simple and properly spicy.',
     basePrice: 18500,
     category: 'Pasta',
@@ -490,6 +510,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Seafood Linguine',
+    imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80',
     description: 'Prawns, calamari and mussels in a white wine and garlic sauce.',
     basePrice: 32000,
     category: 'Pasta',
@@ -502,6 +523,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Truffle Mushroom Pasta',
+    imageUrl: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=800&q=80',
     description: 'Wild mushrooms, truffle oil, parmesan and parsley.',
     basePrice: 27500,
     category: 'Pasta',
@@ -520,6 +542,7 @@ export const PRODUCTS: SeedProduct[] = [
   /* ------------------------------------------------------------- salads */
   {
     name: 'Caesar Salad',
+    imageUrl: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?auto=format&fit=crop&w=800&q=80',
     description: 'Baby gem, parmesan, sourdough croutons and classic Caesar dressing.',
     basePrice: 17500,
     category: 'Salads',
@@ -548,6 +571,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Tunisian Salad',
+    imageUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80',
     description: 'Finely diced tomato, cucumber, pepper, onion, tuna, egg and olives.',
     basePrice: 15000,
     category: 'Salads',
@@ -565,6 +589,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Burrata & Tomato',
+    imageUrl: 'https://images.unsplash.com/photo-1623428187969-5da2dcea5ebf?auto=format&fit=crop&w=800&q=80',
     description: 'Whole burrata, heritage tomatoes, basil oil and sea salt.',
     basePrice: 23000,
     category: 'Salads',
@@ -577,6 +602,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Quinoa & Roasted Veg',
+    imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80',
     description: 'Quinoa, roasted root vegetables, pomegranate and tahini dressing.',
     basePrice: 19000,
     category: 'Salads',
@@ -589,6 +615,7 @@ export const PRODUCTS: SeedProduct[] = [
   /* ------------------------------------------------------------- drinks */
   {
     name: 'Espresso',
+    imageUrl: 'https://images.unsplash.com/photo-1510707577719-ae7c14805e3a?auto=format&fit=crop&w=800&q=80',
     description: 'Single origin, roasted locally, pulled short.',
     basePrice: 3500,
     category: 'Drinks',
@@ -604,6 +631,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Cappuccino',
+    imageUrl: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=800&q=80',
     description: 'Espresso, steamed milk and a proper cap of microfoam.',
     basePrice: 6000,
     category: 'Drinks',
@@ -624,6 +652,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Café Latte',
+    imageUrl: 'https://images.unsplash.com/photo-1561882468-9110e03e0f78?auto=format&fit=crop&w=800&q=80',
     description: 'Long, milky and smooth.',
     basePrice: 6500,
     category: 'Drinks',
@@ -643,6 +672,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Mint Tea',
+    imageUrl: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80',
     description: 'Green tea, fresh mint and pine nuts — the Tunisian way.',
     basePrice: 4500,
     category: 'Drinks',
@@ -654,6 +684,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Coca-Cola',
+    imageUrl: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80',
     description: 'Chilled 33 cl can.',
     basePrice: 4000,
     category: 'Drinks',
@@ -666,6 +697,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Sparkling Water',
+    imageUrl: 'https://images.unsplash.com/photo-1559839914-17aae19cec71?auto=format&fit=crop&w=800&q=80',
     description: '50 cl bottle, served chilled with lemon.',
     basePrice: 3500,
     category: 'Drinks',
@@ -676,6 +708,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Fresh Orange Juice',
+    imageUrl: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=800&q=80',
     description: 'Pressed to order. Nothing added.',
     basePrice: 8000,
     category: 'Drinks',
@@ -694,6 +727,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Lemonade & Mint',
+    imageUrl: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80',
     description: 'Pressed lemon, mint leaves and a little cane sugar.',
     basePrice: 7500,
     category: 'Drinks',
@@ -705,6 +739,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Iced Latte',
+    imageUrl: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=800&q=80',
     description: 'Double espresso poured over ice and cold milk.',
     basePrice: 7500,
     category: 'Drinks',
@@ -720,6 +755,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Mojito Mocktail',
+    imageUrl: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=800&q=80',
     description: 'Lime, mint, cane sugar and soda. Alcohol-free.',
     basePrice: 11000,
     category: 'Drinks',
@@ -732,6 +768,7 @@ export const PRODUCTS: SeedProduct[] = [
   /* ----------------------------------------------------------- desserts */
   {
     name: 'Tiramisu',
+    imageUrl: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=800&q=80',
     description: 'Mascarpone, espresso-soaked savoiardi and cocoa. Made this morning.',
     basePrice: 12500,
     category: 'Desserts',
@@ -748,6 +785,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Molten Chocolate Cake',
+    imageUrl: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80',
     description: 'Warm dark chocolate fondant with vanilla ice cream.',
     basePrice: 14000,
     category: 'Desserts',
@@ -759,6 +797,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Crème Brûlée',
+    imageUrl: 'https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?auto=format&fit=crop&w=800&q=80',
     description: 'Vanilla custard under a hard caramel top.',
     basePrice: 12000,
     category: 'Desserts',
@@ -769,6 +808,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Baklava Selection',
+    imageUrl: 'https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=800&q=80',
     description: 'Four pieces, pistachio and almond, with honey syrup.',
     basePrice: 13500,
     category: 'Desserts',
@@ -780,6 +820,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Lemon Cheesecake',
+    imageUrl: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=800&q=80',
     description: 'Baked cheesecake, lemon curd and a biscuit base.',
     basePrice: 13000,
     category: 'Desserts',
@@ -790,6 +831,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Ice Cream Trio',
+    imageUrl: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?auto=format&fit=crop&w=800&q=80',
     description: 'Three scoops — vanilla, pistachio and dark chocolate.',
     basePrice: 10500,
     category: 'Desserts',
@@ -812,6 +854,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Seasonal Fruit Plate',
+    imageUrl: 'https://images.unsplash.com/photo-1519996529931-28324d5a630e?auto=format&fit=crop&w=800&q=80',
     description: 'Whatever the market had this morning, cut to order.',
     basePrice: 11500,
     category: 'Desserts',
@@ -822,6 +865,7 @@ export const PRODUCTS: SeedProduct[] = [
   },
   {
     name: 'Affogato',
+    imageUrl: 'https://images.unsplash.com/photo-1592663527359-cf6642f54cff?auto=format&fit=crop&w=800&q=80',
     description: 'Vanilla ice cream drowned in a shot of hot espresso.',
     basePrice: 9500,
     category: 'Desserts',
@@ -835,6 +879,7 @@ export const PRODUCTS: SeedProduct[] = [
   /* an intentionally 86'd item so the "unavailable" state is visible in the demo */
   {
     name: 'Grilled Sea Bass',
+    imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
     description: 'Whole sea bass, charred lemon, olive oil and herbs.',
     basePrice: 38000,
     category: 'Salads',
@@ -909,7 +954,7 @@ export interface SeedEmployee {
  * The two accounts below them stay single-branch so per-branch scoping is still
  * demonstrable (and testable) on a real login.
  */
-const ALL_BRANCHES = ['sousse', 'monastir', 'tunis'];
+const ALL_BRANCHES = ['main'];
 
 export const EMPLOYEES: SeedEmployee[] = [
   { email: 'owner@tableflow.local', fullName: 'Amira Ben Salah', role: 'OWNER', position: 'Owner', branchSlugs: [] },
@@ -919,8 +964,8 @@ export const EMPLOYEES: SeedEmployee[] = [
   { email: 'cashier@tableflow.local', fullName: 'Ines Belhadj', role: 'CASHIER', position: 'Cashier', branchSlugs: ALL_BRANCHES },
   { email: 'inventory@tableflow.local', fullName: 'Walid Chaabane', role: 'INVENTORY', position: 'Stock controller', branchSlugs: ALL_BRANCHES },
   { email: 'admin@tableflow.local', fullName: 'Sami Fourati', role: 'ADMIN', position: 'Operations director', branchSlugs: [] },
-  { email: 'manager.monastir@tableflow.local', fullName: 'Rania Hamdi', role: 'MANAGER', position: 'Branch manager', branchSlugs: ['monastir'] },
-  { email: 'waiter.tunis@tableflow.local', fullName: 'Oussama Dridi', role: 'WAITER', position: 'Waiter', branchSlugs: ['tunis'] },
+
+
 ];
 
 /** Round-the-clock, so the demo works whatever time you open it. */
@@ -941,8 +986,8 @@ const STANDARD_HOURS = Array.from({ length: 7 }, (_, dayOfWeek) => ({
 
 export const BRANCHES = [
   {
-    name: 'Sousse — Corniche',
-    slug: 'sousse',
+    name: 'Big Ben Café',
+    slug: 'main',
     address: 'Boulevard de la Corniche, Sousse 4051, Tunisia',
     phone: '+216 73 227 400',
     latitude: 35.8419,
@@ -951,30 +996,6 @@ export const BRANCHES = [
     tableCount: 30,
     kitchenSlaMinutes: 15,
     openingHours: ALWAYS_OPEN,
-  },
-  {
-    name: 'Monastir — Marina',
-    slug: 'monastir',
-    address: 'Marina de Monastir, Monastir 5000, Tunisia',
-    phone: '+216 73 462 118',
-    latitude: 35.7776,
-    longitude: 10.8262,
-    serviceRadiusMeters: 180,
-    tableCount: 24,
-    kitchenSlaMinutes: 16,
-    openingHours: STANDARD_HOURS,
-  },
-  {
-    name: 'Tunis — Lac 2',
-    slug: 'tunis',
-    address: 'Rue du Lac Léman, Les Berges du Lac 2, Tunis 1053, Tunisia',
-    phone: '+216 71 960 233',
-    latitude: 36.8422,
-    longitude: 10.2731,
-    serviceRadiusMeters: 200,
-    tableCount: 22,
-    kitchenSlaMinutes: 14,
-    openingHours: STANDARD_HOURS,
   },
 ];
 

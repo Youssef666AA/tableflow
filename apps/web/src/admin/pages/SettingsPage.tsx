@@ -40,7 +40,7 @@ export default function SettingsPage() {
             onChange={setTab}
             options={[
               { value: 'restaurant', label: 'Restaurant' },
-              { value: 'branch', label: 'Branch' },
+              { value: 'branch', label: (data?.branches.length ?? 0) > 1 ? 'Branch' : 'Operations' },
               { value: 'system', label: 'System' },
             ]}
           />
@@ -260,7 +260,7 @@ function BranchSettings({
   return (
     <div className="space-y-6">
       <section className="rounded-lg border border-line bg-surface p-5 shadow-subtle">
-        <SectionHeading title={draft.name} description="Branch profile" />
+        <SectionHeading title={draft.name} description="Location and operations" />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Name" htmlFor="b-name" className="sm:col-span-2">
             <Input id="b-name" value={draft.name} onChange={(event) => set('name', event.target.value)} disabled={!editable} />

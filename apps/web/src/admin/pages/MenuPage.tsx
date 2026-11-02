@@ -256,7 +256,7 @@ export default function AdminMenuPage() {
                           })
                         }
                       >
-                        {product.status === 'AVAILABLE' ? "86 at this branch" : 'Make available'}
+                        {product.status === 'AVAILABLE' ? "86 item" : 'Make available'}
                       </Button>
                     </div>
                   )}

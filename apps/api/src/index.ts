@@ -19,6 +19,15 @@ async function main(): Promise<void> {
 
   await prisma.$queryRaw`SELECT 1`;
 
+  try {
+    await prisma.$executeRawUnsafe('DROP INDEX IF EXISTS "Receipt_number_key"');
+    await prisma.$executeRawUnsafe(
+      'CREATE UNIQUE INDEX IF NOT EXISTS "Receipt_branchId_number_key" ON "Receipt"("branchId", "number")',
+    );
+  } catch (err) {
+    logger.warn({ err }, 'could not ensure Receipt_branchId_number_key index');
+  }
+
   server.listen(env.PORT, () => {
     logger.info(
       {

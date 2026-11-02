@@ -180,13 +180,14 @@ function SidebarLink({ item }: { item: NavItem }) {
 }
 
 function BrandBlock() {
+  const { user } = useAuth();
   return (
     <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-line px-5">
       <div className="flex size-8 items-center justify-center rounded-lg bg-ink text-ink-inverse">
         <Utensils className="size-4" strokeWidth={1.9} aria-hidden />
       </div>
       <div className="min-w-0">
-        <p className="truncate font-display text-sm font-semibold leading-none text-ink">TableFlow</p>
+        <p className="truncate font-display text-sm font-semibold leading-none text-ink">{user?.restaurant.name ?? 'TableFlow'}</p>
         <p className="mt-1 text-[0.5625rem] uppercase tracking-[0.16em] text-ink-muted">Scan. Order. Serve.</p>
       </div>
     </div>
@@ -197,7 +198,7 @@ function BranchSwitcher() {
   const { user, branchId, branchName, setBranchId } = useAuth();
   const [open, setOpen] = useState(false);
 
-  if (!user || user.branches.length === 0) return null;
+  if (!user || user.branches.length <= 1) return null;
 
   return (
     <div className="relative border-b border-line px-3 py-3">

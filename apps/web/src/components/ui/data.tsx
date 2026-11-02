@@ -100,7 +100,7 @@ export function ChartCard({
         </div>
         {action && <div className="shrink-0">{action}</div>}
       </div>
-      <div className="min-w-0 flex-1 px-2 pb-3" style={{ height }}>
+      <div className="relative min-w-0 px-2 pb-3" style={{ height }}>
         {children}
       </div>
     </section>

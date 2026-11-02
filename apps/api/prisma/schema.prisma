@@ -835,7 +835,7 @@ model Payment {
 
 model Receipt {
   id        String   @id @default(uuid())
-  number    String   @unique
+  number    String
   paymentId String   @unique
   sessionId String?
   branchId  String
@@ -846,6 +846,7 @@ model Receipt {
   session TableSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   branch  Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
+  @@unique([branchId, number])
   @@index([branchId, issuedAt])
 }
 

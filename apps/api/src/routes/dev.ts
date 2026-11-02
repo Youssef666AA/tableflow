@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma.js';
 import { asyncHandler } from '../middleware/common.js';
 import { ensureQrToken, qrUrlFor } from '../services/qr.js';
 import { queueKind } from '../queue/index.js';
+import { PRODUCTS } from '../seed/data.js';
 
 /**
  * QR Test Center.
@@ -99,6 +100,24 @@ devRouter.get(
 );
 
 /** Mints a token on demand for a table that somehow has none. */
+
+devRouter.post(
+  '/sync-images',
+  asyncHandler(async (_req, res) => {
+    let count = 0;
+    for (const p of PRODUCTS) {
+      if (p.imageUrl) {
+        await prisma.product.updateMany({
+          where: { name: p.name },
+          data: { imageUrl: p.imageUrl },
+        });
+        count++;
+      }
+    }
+    res.json({ success: true, count });
+  }),
+);
+
 devRouter.post(
   '/tables/:id/ensure-qr',
   asyncHandler(async (req, res) => {

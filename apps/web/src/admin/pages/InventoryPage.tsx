@@ -529,7 +529,7 @@ function NewIngredientDialog({
       open={open}
       onClose={onClose}
       title="New ingredient"
-      description="Tracked per branch, deducted by recipes."
+      description="Tracked in inventory, deducted by recipes."
       size="sm"
       footer={
         <div className="flex justify-end gap-2">

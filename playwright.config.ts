@@ -39,12 +39,12 @@ export default defineConfig({
     {
       name: 'guest-mobile',
       use: { ...devices['iPhone 13'] },
-      testMatch: /customer-journey\.spec\.ts/,
+      testMatch: /(customer-.*|guest-.*)\.spec\.ts/,
     },
     {
       name: 'staff-desktop',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
-      testMatch: /staff-.*\.spec\.ts/,
+      testMatch: /(staff-.*|admin-.*)\.spec\.ts/,
     },
   ],
 

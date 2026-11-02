@@ -219,6 +219,7 @@ async function main() {
         name: definition.name,
         slug: slugify(definition.name),
         description: definition.description,
+        imageUrl: definition.imageUrl ?? null,
         basePrice: definition.basePrice,
         status: definition.status ?? 'AVAILABLE',
         featured: definition.featured ?? false,
@@ -459,7 +460,7 @@ async function main() {
       restaurantId: restaurant.id,
       branchId: mainBranch.id,
       name: 'Terrace Dessert Week',
-      description: '15% off desserts — Sousse only.',
+      description: '15% off desserts on the terrace.',
       type: 'PERCENTAGE',
       scope: 'CATEGORY',
       value: 15,
@@ -716,7 +717,7 @@ async function main() {
     for (const branch of branches) {
       const tables = tablesByBranch.get(branch.id)!;
       const isWeekend = [5, 6].includes(new Date(Date.now() - dayOffset * 86400000).getDay());
-      const weight = branch.id === mainBranch.id ? 1 : branch.slug === 'tunis' ? 0.8 : 0.6;
+      const weight = 1;
       const sessionCount = Math.round((isWeekend ? randInt(9, 16) : randInt(5, 11)) * weight);
 
       for (let s = 0; s < sessionCount; s += 1) {

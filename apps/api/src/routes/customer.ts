@@ -315,7 +315,11 @@ customerRouter.post(
       idempotencyKey: req.body.idempotencyKey,
       req,
     });
-    res.status(result.payment.status === 'PAID' ? 201 : 402).json({ ...result, simulated: true });
+    const httpStatus =
+      result.payment.status === 'PAID' && result.payment.id !== '' ? 201
+      : result.payment.status === 'PAID' || result.payment.status === 'NOTHING_TO_PAY' ? 200
+      : 402;
+    res.status(httpStatus).json({ ...result, simulated: true });
   }),
 );
 
