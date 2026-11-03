@@ -22,12 +22,12 @@ import { useSession, useSessionAuth } from '../session';
 import type { CustomerServiceRequest } from '../types';
 
 const OPTIONS = [
-  { type: 'WATER', label: 'Water', hint: 'A jug or bottle', Icon: CupSoda },
-  { type: 'NAPKINS', label: 'Napkins', hint: 'More napkins', Icon: Sparkles },
-  { type: 'CUTLERY', label: 'Cutlery', hint: 'Knife, fork, spoon', Icon: UtensilsCrossed },
-  { type: 'CONDIMENTS', label: 'Condiments', hint: 'Salt, harissa, oil', Icon: Soup },
-  { type: 'CALL_WAITER', label: 'Call waiter', hint: 'Someone will come over', Icon: Hand },
-  { type: 'REQUEST_BILL', label: 'Request bill', hint: 'Ask for the bill', Icon: Receipt },
+  { type: 'WATER', label: 'Water', hint: 'Fresh jug or chilled bottle', Icon: CupSoda },
+  { type: 'NAPKINS', label: 'Napkins', hint: 'Clean table napkins', Icon: Sparkles },
+  { type: 'CUTLERY', label: 'Cutlery', hint: 'Extra forks, knives, spoons', Icon: UtensilsCrossed },
+  { type: 'CONDIMENTS', label: 'Condiments', hint: 'Salt, pepper, olive oil, harissa', Icon: Soup },
+  { type: 'CALL_WAITER', label: 'Call waiter', hint: 'Staff will come to your table', Icon: Hand },
+  { type: 'REQUEST_BILL', label: 'Request bill', hint: 'Prepare the table check', Icon: Receipt },
 ] as const;
 
 export default function ServicesPage() {
@@ -64,7 +64,7 @@ export default function ServicesPage() {
       const label = OPTIONS.find((option) => option.type === type)?.label ?? 'Request';
       toast.success(
         result.reused ? `${label} already requested` : 'Your waiter has been notified',
-        result.reused ? 'The team is already on it.' : `${label} · table ${data.table.number}`,
+        result.reused ? 'The floor team is on it.' : `${label} · table ${data.table.number}`,
       );
     },
     onError: (error) => {
@@ -80,37 +80,42 @@ export default function ServicesPage() {
   const openTypes = new Set(open.map((request) => request.type));
 
   return (
-    <div className="mx-auto max-w-phone pb-32">
-      <PageHeader title="Need anything?" description="Tap once and a member of staff is notified straight away." />
+    <div className="mx-auto max-w-phone pb-36">
+      <PageHeader
+        title="Need anything?"
+        description="Tap once and a member of staff is immediately notified."
+      />
 
       <div className="px-4">
-        <div className="mt-4 grid grid-cols-2 gap-2.5">
+        <div className="mt-4 grid grid-cols-2 gap-3">
           {OPTIONS.map(({ type, label, hint, Icon }) => {
             const pending = openTypes.has(type);
             const busy = mutation.isPending && mutation.variables === type;
+
             return (
               <button
                 key={type}
+                type="button"
                 disabled={busy || !data.verified}
                 onClick={() => mutation.mutate(type)}
                 className={cn(
-                  'flex flex-col items-start gap-2 rounded-lg border p-4 text-left transition-all active:scale-[0.98]',
+                  'group flex flex-col items-start gap-2.5 rounded-2xl border p-4 text-left transition-all active:scale-[0.97]',
                   pending
-                    ? 'border-accent/40 bg-accent-soft'
-                    : 'border-line bg-surface shadow-subtle hover:shadow-lift',
+                    ? 'border-accent bg-accent-soft/50 shadow-xs'
+                    : 'border-line/75 bg-surface shadow-subtle hover:border-line-strong hover:shadow-lift',
                   (busy || !data.verified) && 'opacity-60',
                 )}
               >
                 <span
                   className={cn(
-                    'flex size-9 items-center justify-center rounded-md',
-                    pending ? 'bg-accent text-white' : 'bg-surface-sunken text-ink-soft',
+                    'flex size-10 items-center justify-center rounded-xl transition-colors',
+                    pending ? 'bg-accent text-white shadow-xs' : 'bg-stone-100 text-ink-soft group-hover:bg-accent-soft group-hover:text-accent-strong',
                   )}
                 >
-                  {pending ? <Check className="size-4" strokeWidth={2.6} /> : <Icon className="size-[1.125rem]" />}
+                  {pending ? <Check className="size-4 stroke-[3]" /> : <Icon className="size-5" />}
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-ink">{label}</span>
+                  <span className="block text-sm font-bold text-ink">{label}</span>
                   <span className="mt-0.5 block text-xs leading-snug text-ink-muted">
                     {pending ? 'Staff notified' : hint}
                   </span>
@@ -120,43 +125,44 @@ export default function ServicesPage() {
           })}
         </div>
 
-        <div className="mt-5">
-          <label htmlFor="request-note" className="mb-1.5 block text-[0.8125rem] font-medium text-ink-soft">
+        <div className="mt-5 rounded-2xl border border-line/75 bg-surface p-4 shadow-subtle">
+          <label htmlFor="request-note" className="mb-1.5 block text-xs font-semibold text-ink-soft">
             Add a note <span className="font-normal text-ink-muted">(optional)</span>
           </label>
           <Textarea
             id="request-note"
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            placeholder="Anything the waiter should know before coming over"
+            placeholder="Special instructions before your server comes over…"
             rows={2}
             maxLength={280}
+            className="rounded-xl border-line/80 focus:border-accent"
           />
         </div>
 
-        <section className="mt-7">
-          <h2 className="mb-2.5 text-[0.8125rem] font-semibold uppercase tracking-wider text-ink-soft">
+        <section className="mt-6">
+          <h2 className="mb-2.5 text-xs font-bold uppercase tracking-wider text-ink-soft">
             Your requests
           </h2>
 
           {requests.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-line bg-surface/60 px-4 py-8 text-center">
+            <div className="rounded-2xl border border-dashed border-line/80 bg-surface/50 px-4 py-8 text-center">
               <BellRing className="mx-auto mb-2 size-5 text-ink-muted" aria-hidden />
-              <p className="text-sm font-medium text-ink">Need anything? Ask your waiter.</p>
-              <p className="mt-1 text-xs text-ink-muted">Requests you make will be tracked here.</p>
+              <p className="text-sm font-semibold text-ink">No pending requests</p>
+              <p className="mt-1 text-xs text-ink-muted">Tap any service tile above if you need assistance.</p>
             </div>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-2.5">
               {requests.map((request) => (
                 <li
                   key={request.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-4 py-3 shadow-subtle"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-line/75 bg-surface px-4 py-3.5 shadow-subtle"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-ink">{request.label}</p>
+                    <p className="text-sm font-bold text-ink">{request.label}</p>
                     <p className="mt-0.5 text-xs text-ink-muted">
                       {relativeTime(request.createdAt)}
-                      {request.note ? ` · ${request.note}` : ''}
+                      {request.note ? ` · “${request.note}”` : ''}
                     </p>
                   </div>
                   <RequestStatusBadge status={request.status} size="sm" />

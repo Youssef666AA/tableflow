@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Flame, Minus, Plus, Sparkles, Star, X } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Flame, Leaf, Minus, Plus, Sparkles, Star, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { money } from '@/lib/format';
 import { Badge, Button, Textarea } from '@/components/ui/primitives';
@@ -31,8 +31,8 @@ export function CategoryScroller({
   }, [activeId]);
 
   return (
-    <div className="sticky top-[calc(3.75rem+env(safe-area-inset-top,0px))] z-20 -mx-4 bg-canvas/85 px-4 py-2 backdrop-blur-lg">
-      <div ref={containerRef} className="no-scrollbar flex gap-2 overflow-x-auto">
+    <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-20 -mx-4 border-b border-line/60 bg-[#FAF8F5]/90 px-4 py-2.5 backdrop-blur-xl">
+      <div ref={containerRef} className="no-scrollbar flex items-center gap-2 overflow-x-auto scroll-smooth">
         <CategoryChip label="All" active={activeId === null} onClick={() => onSelect(null)} />
         {categories.map((category) => (
           <CategoryChip
@@ -61,24 +61,34 @@ function CategoryChip({
 }) {
   return (
     <button
+      type="button"
       data-active={active}
       onClick={onClick}
       className={cn(
-        'relative shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200',
-        active ? 'text-ink-inverse' : 'bg-surface text-ink-soft ring-1 ring-inset ring-line hover:bg-surface-sunken',
+        'relative shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 active:scale-95',
+        active
+          ? 'text-white shadow-lift'
+          : 'bg-white text-ink-soft ring-1 ring-inset ring-line/80 hover:bg-stone-50 hover:text-ink',
       )}
     >
       {active && (
         <motion.span
           layoutId="category-pill"
-          className="absolute inset-0 rounded-full bg-ink"
-          transition={{ type: 'spring', damping: 30, stiffness: 380 }}
+          className="absolute inset-0 rounded-full bg-[#141413]"
+          transition={{ type: 'spring', damping: 28, stiffness: 380 }}
         />
       )}
-      <span className="relative">
+      <span className="relative flex items-center gap-1.5">
         {label}
         {count !== undefined && count > 0 && (
-          <span className={cn('ml-1.5 text-2xs tabular', active ? 'opacity-60' : 'text-ink-muted')}>{count}</span>
+          <span
+            className={cn(
+              'rounded-full px-1.5 py-0.2 text-[10px] font-semibold tabular',
+              active ? 'bg-white/20 text-white' : 'bg-stone-100 text-ink-muted',
+            )}
+          >
+            {count}
+          </span>
         )}
       </span>
     </button>
@@ -91,10 +101,12 @@ export function ProductCard({
   product,
   currency,
   onOpen,
+  cartCount = 0,
 }: {
   product: MenuProduct;
   currency: string;
   onOpen: (product: MenuProduct) => void;
+  cartCount?: number;
 }) {
   const unavailable = product.status !== 'AVAILABLE';
   const fromPrice =
@@ -102,59 +114,108 @@ export function ProductCard({
       ? product.basePrice + Math.min(...product.variants.map((v) => v.priceDelta))
       : product.basePrice;
 
+  const isVeg = product.tags.some((t) => /veg/i.test(t));
+  const isSpicy = product.tags.some((t) => /spic/i.test(t));
+
   return (
     <button
+      type="button"
       onClick={() => !unavailable && onOpen(product)}
       disabled={unavailable}
       className={cn(
-        'group flex w-full items-stretch gap-3.5 rounded-lg border border-line bg-surface p-3 text-left shadow-subtle transition-all duration-200',
-        unavailable ? 'cursor-not-allowed opacity-60' : 'active:scale-[0.99] hover:shadow-lift',
+        'group flex w-full items-stretch justify-between gap-3.5 rounded-2xl border border-line/75 bg-surface p-3.5 text-left shadow-subtle transition-all duration-200',
+        unavailable
+          ? 'cursor-not-allowed opacity-55'
+          : 'active:scale-[0.99] hover:border-line-strong hover:shadow-lift',
       )}
     >
-      <div className="relative size-[5.5rem] shrink-0 overflow-hidden rounded-md">
-        <FoodImage name={product.name} src={product.imageUrl} />
-        {unavailable && (
-          <span className="absolute inset-0 flex items-center justify-center bg-ink/55 px-1 text-center text-2xs font-semibold leading-tight text-white">
-            Currently unavailable
-          </span>
-        )}
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-start gap-2">
-          <h3 className="min-w-0 flex-1 text-[0.9375rem] font-semibold leading-snug text-ink">{product.name}</h3>
-          {product.popular && !unavailable && (
-            <Flame className="mt-0.5 size-4 shrink-0 text-gold" aria-label="Popular" />
-          )}
-        </div>
-
-        {product.description && (
-          <p className="mt-1 line-clamp-2 text-[0.8125rem] leading-relaxed text-ink-muted">
-            {product.description}
-          </p>
-        )}
-
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-          <div className="min-w-0">
-            <p className="tabular text-[0.9375rem] font-semibold text-ink">
-              {product.variants.length > 0 && <span className="mr-1 text-xs font-normal text-ink-muted">from</span>}
-              {money(fromPrice, currency)}
-            </p>
-            {product.ratingCount > 0 && (
-              <p className="mt-0.5 flex items-center gap-1 text-2xs text-ink-muted">
-                <Star className="size-3 fill-gold text-gold" aria-hidden />
-                <span className="tabular">{product.rating.toFixed(1)}</span>
-                <span>({product.ratingCount})</span>
-              </p>
-            )}
+      <div className="flex min-w-0 flex-1 flex-col justify-between">
+        <div>
+          <div className="flex items-start gap-1.5">
+            <h3 className="min-w-0 flex-1 font-sans text-[0.9375rem] font-semibold leading-snug text-ink transition-colors group-hover:text-accent-strong">
+              {product.name}
+            </h3>
           </div>
 
-          {!unavailable && (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent-strong transition-colors group-hover:bg-accent group-hover:text-white">
-              <Plus className="size-4" strokeWidth={2.4} aria-hidden />
-            </span>
+          {product.description && (
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-muted">
+              {product.description}
+            </p>
+          )}
+
+          {/* Micro dietary and prep tags */}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {product.popular && !unavailable && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                <Flame className="size-2.5 text-amber-600" />
+                Popular
+              </span>
+            )}
+            {isVeg && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                <Leaf className="size-2.5 text-emerald-600" />
+                Veg
+              </span>
+            )}
+            {isSpicy && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700 ring-1 ring-inset ring-rose-600/20">
+                <Flame className="size-2.5 text-rose-600" />
+                Spicy
+              </span>
+            )}
+            {product.prepTimeMinutes > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
+                <Clock className="size-2.5 text-stone-500" />
+                ~{product.prepTimeMinutes}m
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-baseline justify-between gap-2">
+          <p className="tabular text-[0.9375rem] font-bold text-ink">
+            {product.variants.length > 0 && <span className="mr-1 text-xs font-normal text-ink-muted">from</span>}
+            {money(fromPrice, currency)}
+          </p>
+
+          {product.ratingCount > 0 && (
+            <p className="flex items-center gap-1 text-[11px] font-medium text-ink-muted">
+              <Star className="size-3 fill-amber-400 text-amber-400" aria-hidden />
+              <span className="tabular font-semibold text-ink-soft">{product.rating.toFixed(1)}</span>
+              <span>({product.ratingCount})</span>
+            </p>
           )}
         </div>
+      </div>
+
+      {/* Right side locked food image container with floating quick-add */}
+      <div className="relative size-[5.75rem] sm:size-24 shrink-0 overflow-hidden rounded-2xl shadow-xs ring-1 ring-black/5">
+        <FoodImage
+          name={product.name}
+          src={product.imageUrl}
+          rounded="rounded-2xl"
+          className={cn(unavailable && 'grayscale contrast-90')}
+        />
+
+        {unavailable ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 p-1 text-center backdrop-blur-xs">
+            <span className="rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-900 shadow-sm">
+              Sold out
+            </span>
+          </div>
+        ) : (
+          <div className="absolute bottom-1.5 right-1.5 z-10">
+            {cartCount > 0 ? (
+              <span className="flex size-7 items-center justify-center rounded-full bg-accent text-xs font-bold text-white shadow-lift ring-2 ring-white transition-transform active:scale-90">
+                {cartCount}
+              </span>
+            ) : (
+              <span className="flex size-7 items-center justify-center rounded-full bg-white/95 text-ink shadow-lift backdrop-blur-xs transition-all active:scale-90 ring-1 ring-black/5 group-hover:bg-accent group-hover:text-white">
+                <Plus className="size-3.5" strokeWidth={2.5} />
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </button>
   );
@@ -175,25 +236,59 @@ export function FeaturedRail({
 
   return (
     <section className="pt-1">
-      <div className="mb-2.5 flex items-center gap-2 px-4">
-        <Sparkles className="size-4 text-gold" aria-hidden />
-        <h2 className="text-[0.8125rem] font-semibold uppercase tracking-wider text-ink-soft">Chef's picks</h2>
+      <div className="mb-2.5 flex items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <span className="flex size-6 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+            <Sparkles className="size-3.5" aria-hidden />
+          </span>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-ink-soft">Chef's highlights</h2>
+        </div>
+        <span className="text-2xs font-medium text-ink-muted">Handcrafted specials</span>
       </div>
-      <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
+      <div className="no-scrollbar flex snap-x snap-mandatory gap-3.5 overflow-x-auto px-4 pb-2">
         {products.map((product) => (
           <button
             key={product.id}
+            type="button"
             onClick={() => onOpen(product)}
-            className="w-[13.5rem] shrink-0 snap-start overflow-hidden rounded-lg border border-line bg-surface text-left shadow-subtle transition-transform active:scale-[0.98]"
+            className="group w-[15.5rem] shrink-0 snap-start overflow-hidden rounded-2xl border border-line/75 bg-surface text-left shadow-subtle transition-all active:scale-[0.98] hover:border-line-strong hover:shadow-lift"
           >
-            <div className="h-28 w-full">
-              <FoodImage name={product.name} src={product.imageUrl} rounded="rounded-none" />
+            <div className="relative aspect-[16/10] w-full overflow-hidden">
+              <FoodImage
+                name={product.name}
+                src={product.imageUrl}
+                rounded="rounded-none"
+                className="transition-transform duration-500 ease-out group-hover:scale-105"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute left-2.5 top-2.5 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-neutral-900 shadow-xs backdrop-blur-md">
+                <Sparkles className="size-2.5 text-amber-600" />
+                Special
+              </div>
+              {product.prepTimeMinutes > 0 && (
+                <div className="absolute right-2.5 top-2.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-md">
+                  ~{product.prepTimeMinutes}m
+                </div>
+              )}
+              <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-baseline justify-between text-white">
+                <span className="tabular font-display text-base font-bold drop-shadow-sm">
+                  {money(product.basePrice, currency)}
+                </span>
+                {product.ratingCount > 0 && (
+                  <span className="flex items-center gap-1 text-[11px] font-medium drop-shadow-sm">
+                    <Star className="size-3 fill-amber-400 text-amber-400" />
+                    {product.rating.toFixed(1)}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="p-3">
-              <h3 className="truncate text-sm font-semibold text-ink">{product.name}</h3>
-              <p className="tabular mt-1 text-sm font-semibold text-accent-strong">
-                {money(product.basePrice, currency)}
-              </p>
+              <h3 className="truncate font-sans text-sm font-semibold text-ink group-hover:text-accent-strong transition-colors">
+                {product.name}
+              </h3>
+              {product.description && (
+                <p className="mt-1 line-clamp-1 text-xs text-ink-muted">{product.description}</p>
+              )}
             </div>
           </button>
         ))}
@@ -330,14 +425,14 @@ export function ProductSheet({
       onClose={onClose}
       size="lg"
       footer={
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="secondary"
             size="lg"
             onClick={onClose}
             aria-label="Back to menu"
-            className="shrink-0 px-3.5 text-ink hover:bg-surface-sunken"
+            className="shrink-0 px-3.5 text-ink hover:bg-stone-100"
           >
             <ArrowLeft className="mr-1.5 size-4" />
             <span className="text-xs font-semibold">Back</span>
@@ -346,27 +441,33 @@ export function ProductSheet({
             value={selection.quantity}
             onChange={(quantity) => setSelection((current) => ({ ...current, quantity }))}
           />
-          <Button size="lg" fullWidth onClick={handleAdd} className="flex-1">
+          <Button
+            size="lg"
+            fullWidth
+            onClick={handleAdd}
+            className="flex-1 bg-accent hover:bg-accent-strong text-white shadow-lift active:scale-[0.98] transition-transform"
+          >
             <span>Add to cart</span>
-            <span className="tabular ml-auto font-semibold">
+            <span className="tabular ml-auto font-bold">
               {money(unitPrice * selection.quantity, currency)}
             </span>
           </Button>
         </div>
       }
     >
-      <div className="relative h-56 w-full sm:h-64">
+      <div className="relative h-60 w-full sm:h-72">
         <FoodImage name={displayProduct.name} src={displayProduct.imageUrl} rounded="rounded-none" eager />
 
-        {/* Top gradient shadow for button contrast */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 via-black/20 to-transparent" />
+        {/* Ambient dark gradient overlays for controls */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/55 via-black/20 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
 
         {/* Top-left "Back to menu" button */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Back to menu"
-          className="absolute left-3.5 top-3.5 z-20 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-neutral-900 shadow-md backdrop-blur-md transition-all active:scale-95 hover:bg-white focus:outline-none focus:ring-2 focus:ring-accent dark:bg-neutral-900/90 dark:text-white"
+          className="absolute left-4 top-4 z-20 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-neutral-900 shadow-md backdrop-blur-md transition-all active:scale-95 hover:bg-white"
         >
           <ArrowLeft className="size-4" strokeWidth={2.4} />
           <span>Back</span>
@@ -377,7 +478,7 @@ export function ProductSheet({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3.5 top-3.5 z-20 flex size-8 items-center justify-center rounded-full bg-white/95 text-neutral-900 shadow-md backdrop-blur-md transition-all active:scale-95 hover:bg-white focus:outline-none focus:ring-2 focus:ring-accent dark:bg-neutral-900/90 dark:text-white"
+          className="absolute right-4 top-4 z-20 flex size-8 items-center justify-center rounded-full bg-white/95 text-neutral-900 shadow-md backdrop-blur-md transition-all active:scale-95 hover:bg-white"
         >
           <X className="size-4" strokeWidth={2.4} />
         </button>
@@ -385,8 +486,8 @@ export function ProductSheet({
 
       <div className="px-5 pb-6 pt-5">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="font-display text-[1.375rem] font-semibold leading-tight text-ink">{displayProduct.name}</h2>
-          <p className="tabular shrink-0 text-lg font-semibold text-ink">{money(displayProduct.basePrice, currency)}</p>
+          <h2 className="font-display text-[1.375rem] font-bold leading-tight text-ink">{displayProduct.name}</h2>
+          <p className="tabular shrink-0 text-xl font-bold text-ink">{money(displayProduct.basePrice, currency)}</p>
         </div>
 
         {displayProduct.description && (
@@ -398,14 +499,16 @@ export function ProductSheet({
           {displayProduct.tags.map((tag) => (
             <Badge key={tag} size="sm">{tag}</Badge>
           ))}
-          <Badge size="sm" tone="neutral">~{displayProduct.prepTimeMinutes} min</Badge>
+          {displayProduct.prepTimeMinutes > 0 && (
+            <Badge size="sm" tone="neutral">~{displayProduct.prepTimeMinutes} min</Badge>
+          )}
           {displayProduct.calories != null && <Badge size="sm">{displayProduct.calories} kcal</Badge>}
         </div>
 
         {displayProduct.allergens.length > 0 && (
-          <p className="mt-3 text-xs text-ink-muted">
-            <span className="font-medium text-ink-soft">Allergens:</span> {displayProduct.allergens.join(', ')}
-          </p>
+          <div className="mt-3 rounded-xl bg-stone-100/70 px-3 py-2 text-xs text-ink-muted">
+            <span className="font-semibold text-ink-soft">Allergens:</span> {displayProduct.allergens.join(', ')}
+          </div>
         )}
 
         {displayProduct.variants.length > 0 && (
@@ -459,13 +562,14 @@ export function ProductSheet({
         })}
 
         <div className="mt-6">
-          <h3 className="mb-2 text-sm font-semibold text-ink">Anything else?</h3>
+          <h3 className="mb-2 text-sm font-semibold text-ink">Special kitchen requests</h3>
           <Textarea
             value={selection.notes}
             onChange={(event) => setSelection((current) => ({ ...current, notes: event.target.value }))}
-            placeholder="No ice, please cut in half…"
+            placeholder="E.g., dressing on the side, extra crispy, no cutlery…"
             maxLength={280}
             rows={2}
+            className="rounded-xl border-line/80 focus:border-accent"
           />
         </div>
       </div>
@@ -488,15 +592,23 @@ function OptionGroup({
 }) {
   return (
     <section className="mt-6">
-      <div className="mb-2 flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-ink">
-          {title}
-          {required && <span className="ml-1.5 text-2xs font-medium uppercase tracking-wide text-accent">Required</span>}
+      <div className="mb-2.5 flex items-baseline justify-between gap-3">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <span>{title}</span>
+          {required ? (
+            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
+              Required
+            </span>
+          ) : (
+            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-ink-muted">
+              Optional
+            </span>
+          )}
         </h3>
         {hint && <span className="text-2xs text-ink-muted">{hint}</span>}
       </div>
-      <div className="overflow-hidden rounded-md border border-line">{children}</div>
-      {error && <p className="mt-1.5 text-xs font-medium text-danger">{error}</p>}
+      <div className="space-y-1.5">{children}</div>
+      {error && <p className="mt-1.5 text-xs font-semibold text-danger">{error}</p>}
     </section>
   );
 }
@@ -523,30 +635,52 @@ function OptionRow({
   return (
     <label
       className={cn(
-        'flex cursor-pointer items-center gap-3 border-b border-line px-3.5 py-3 last:border-0 transition-colors',
-        disabled ? 'cursor-not-allowed opacity-45' : 'active:bg-surface-sunken',
-        checked && !disabled && 'bg-accent-soft/50',
+        'flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3.5 transition-all duration-150',
+        disabled && 'cursor-not-allowed opacity-40',
+        checked && !disabled
+          ? 'border-accent bg-accent-soft/40 shadow-xs'
+          : 'border-line/75 bg-surface hover:border-line-strong active:bg-stone-50',
       )}
     >
-      <input
-        type={type}
-        name={name}
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-        className={cn(
-          'size-[1.125rem] shrink-0 border-line-strong text-accent focus:ring-accent/40',
-          type === 'radio' ? 'rounded-full' : 'rounded',
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="relative flex size-5 shrink-0 items-center justify-center">
+          <input
+            type={type}
+            name={name}
+            checked={checked}
+            disabled={disabled}
+            onChange={onChange}
+            className="peer sr-only"
+          />
+          <div
+            className={cn(
+              'flex size-5 items-center justify-center border transition-all',
+              type === 'radio' ? 'rounded-full' : 'rounded-md',
+              checked
+                ? 'border-accent bg-accent text-white'
+                : 'border-line-strong bg-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent',
+            )}
+          >
+            {checked && <Check className="size-3.5 stroke-[3]" />}
+          </div>
+        </div>
+        <span className="min-w-0 flex-1 text-sm font-medium text-ink">{label}</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {priceDelta !== 0 && (
+          <span
+            className={cn(
+              'tabular rounded-full px-2 py-0.5 text-xs font-semibold',
+              checked ? 'bg-accent/15 text-accent-strong' : 'bg-stone-100 text-ink-soft',
+            )}
+          >
+            {priceDelta > 0 ? '+' : '−'}
+            {money(Math.abs(priceDelta), currency)}
+          </span>
         )}
-      />
-      <span className="min-w-0 flex-1 text-sm text-ink">{label}</span>
-      {priceDelta !== 0 && (
-        <span className="tabular shrink-0 text-sm font-medium text-ink-soft">
-          {priceDelta > 0 ? '+' : '−'}
-          {money(Math.abs(priceDelta), currency)}
-        </span>
-      )}
-      {disabled && <span className="shrink-0 text-2xs text-ink-muted">Unavailable</span>}
+        {disabled && <span className="text-2xs text-ink-muted">Unavailable</span>}
+      </div>
     </label>
   );
 }
@@ -567,7 +701,7 @@ export function QuantityStepper({
   return (
     <div
       className={cn(
-        'flex shrink-0 items-center rounded-md border border-line-strong bg-surface',
+        'flex shrink-0 items-center rounded-xl border border-line-strong/80 bg-surface shadow-xs',
         size === 'lg' ? 'h-12' : 'h-9',
       )}
     >
@@ -577,7 +711,7 @@ export function QuantityStepper({
         onClick={() => onChange(Math.max(min - 1, value - 1))}
         disabled={value <= min - 1}
         className={cn(
-          'flex h-full items-center justify-center text-ink-soft transition-colors hover:text-ink disabled:opacity-35',
+          'flex h-full items-center justify-center text-ink-soft transition-all hover:text-ink active:scale-90 disabled:opacity-30',
           size === 'lg' ? 'w-11' : 'w-8',
         )}
       >
@@ -585,7 +719,7 @@ export function QuantityStepper({
       </button>
       <span
         className={cn(
-          'tabular min-w-6 text-center font-semibold text-ink',
+          'tabular min-w-7 text-center font-bold text-ink select-none',
           size === 'lg' ? 'text-base' : 'text-sm',
         )}
       >
@@ -597,7 +731,7 @@ export function QuantityStepper({
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
         className={cn(
-          'flex h-full items-center justify-center text-ink-soft transition-colors hover:text-ink disabled:opacity-35',
+          'flex h-full items-center justify-center text-ink-soft transition-all hover:text-ink active:scale-90 disabled:opacity-30',
           size === 'lg' ? 'w-11' : 'w-8',
         )}
       >

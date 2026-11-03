@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, UtensilsCrossed, X } from 'lucide-react';
+import { Flame, Leaf, Search, Sparkles, UtensilsCrossed, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useDebounced } from '@/lib/hooks';
 import { Input } from '@/components/ui/primitives';
@@ -13,6 +13,16 @@ import { useCart } from '../cart';
 import { useSession, useSessionAuth } from '../session';
 import type { MenuProduct, MenuResponse } from '../types';
 
+type DietaryFilter = 'all' | 'popular' | 'featured' | 'vegetarian' | 'spicy';
+
+const DIETARY_FILTERS: Array<{ id: DietaryFilter; label: string; icon?: typeof Flame }> = [
+  { id: 'all', label: 'All' },
+  { id: 'popular', label: 'Popular', icon: Flame },
+  { id: 'featured', label: "Chef's Pick", icon: Sparkles },
+  { id: 'vegetarian', label: 'Vegetarian', icon: Leaf },
+  { id: 'spicy', label: 'Spicy', icon: Flame },
+];
+
 export default function MenuPage() {
   const { data, currency } = useSession();
   const auth = useSessionAuth();
@@ -22,6 +32,7 @@ export default function MenuPage() {
 
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [dietary, setDietary] = useState<DietaryFilter>('all');
 
   const debouncedSearch = useDebounced(search, 250);
 
@@ -32,6 +43,15 @@ export default function MenuPage() {
   });
 
   const menu = query.data;
+
+  // Track item counts in cart so dish cards can display dynamic active counts
+  const itemCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const line of cart.lines) {
+      counts[line.productId] = (counts[line.productId] ?? 0) + line.quantity;
+    }
+    return counts;
+  }, [cart.lines]);
 
   // Track selected product via URL search param (?dish=id) so the phone's native hardware/browser Back button
   // closes the product view and restores the previous menu UI instead of leaving the page.
@@ -82,6 +102,13 @@ export default function MenuPage() {
     const term = debouncedSearch.trim().toLowerCase();
     return menu.products.filter((product) => {
       if (categoryId && product.categoryId !== categoryId) return false;
+
+      // Dietary filter check
+      if (dietary === 'popular' && !product.popular) return false;
+      if (dietary === 'featured' && !product.featured) return false;
+      if (dietary === 'vegetarian' && !product.tags.some((t) => /veg/i.test(t))) return false;
+      if (dietary === 'spicy' && !product.tags.some((t) => /spic/i.test(t))) return false;
+
       if (!term) return true;
       return (
         product.name.toLowerCase().includes(term) ||
@@ -89,7 +116,7 @@ export default function MenuPage() {
         product.tags.some((tag) => tag.toLowerCase().includes(term))
       );
     });
-  }, [menu, categoryId, debouncedSearch]);
+  }, [menu, categoryId, dietary, debouncedSearch]);
 
   const grouped = useMemo(() => {
     if (!menu) return [];
@@ -110,15 +137,15 @@ export default function MenuPage() {
     [menu],
   );
 
-  const searching = debouncedSearch.trim().length > 0;
+  const searching = debouncedSearch.trim().length > 0 || dietary !== 'all';
 
   return (
-    <div className="mx-auto max-w-phone px-4 pb-40">
+    <div className="mx-auto max-w-phone px-4 pb-44">
       <TableSessionBanner />
 
       {!data.openState.open && (
-        <div className="mt-3 rounded-lg border border-danger/25 bg-danger-soft px-4 py-3">
-          <p className="text-sm font-medium text-danger">{data.restaurant.name} is currently closed</p>
+        <div className="mt-3 rounded-2xl border border-danger/25 bg-danger-soft px-4 py-3">
+          <p className="text-sm font-semibold text-danger">{data.restaurant.name} is currently closed</p>
           <p className="mt-1 text-xs leading-relaxed text-danger/80">
             You can browse the menu, but orders can only be placed during opening hours
             {data.openState.opensAt ? ` (from ${data.openState.opensAt})` : ''}.
@@ -126,16 +153,18 @@ export default function MenuPage() {
         </div>
       )}
 
-      <div className="pb-2 pt-4">
-        <h2 className="font-display text-[1.5rem] font-semibold leading-tight tracking-tight text-ink">
+      {/* Editorial greeting header */}
+      <div className="pb-3 pt-5">
+        <h2 className="font-display text-[1.625rem] font-bold leading-tight tracking-tight text-ink">
           What can we get you?
         </h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Table {data.table.number} · tap any dish to customise it
+        <p className="mt-1 text-xs text-ink-muted">
+          Table {data.table.number} · tap any dish to customise options
         </p>
       </div>
 
-      <div className="relative py-2">
+      {/* Search Input Bar */}
+      <div className="relative py-1.5">
         <Search
           className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
           aria-hidden
@@ -144,22 +173,46 @@ export default function MenuPage() {
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search dishes, drinks…"
-          className="h-11 rounded-lg pl-10 pr-10"
+          placeholder="Search dishes, drinks, ingredients…"
+          className="h-11 rounded-2xl bg-white pl-10 pr-10 shadow-xs focus:ring-accent/40"
           aria-label="Search the menu"
         />
         {search && (
           <button
+            type="button"
             onClick={() => setSearch('')}
             aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-muted hover:bg-surface-sunken"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-muted transition-colors hover:bg-stone-100"
           >
             <X className="size-3.5" />
           </button>
         )}
       </div>
 
-      {menu && !searching && (
+      {/* Dietary filter pills strip */}
+      <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 py-2">
+        {DIETARY_FILTERS.map((item) => {
+          const active = dietary === item.id;
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setDietary(item.id)}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                active
+                  ? 'bg-accent text-white shadow-xs'
+                  : 'bg-white text-ink-muted ring-1 ring-inset ring-line/80 hover:bg-stone-50 hover:text-ink'
+              }`}
+            >
+              {Icon && <Icon className={`size-3 ${active ? 'text-white' : 'text-ink-muted'}`} />}
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {menu && debouncedSearch.trim().length === 0 && (
         <CategoryScroller categories={menu.categories} activeId={categoryId} onSelect={setCategoryId} />
       )}
 
@@ -172,7 +225,7 @@ export default function MenuPage() {
       {menu && (
         <>
           {!searching && !categoryId && featured.length > 0 && (
-            <div className="-mx-4 mt-4">
+            <div className="-mx-4 mt-3">
               <FeaturedRail products={featured} currency={currency} onOpen={handleOpenProduct} />
             </div>
           )}
@@ -180,7 +233,13 @@ export default function MenuPage() {
           {!searching && !categoryId && popular.length > 0 && (
             <Section title="Popular right now">
               {popular.map((product) => (
-                <ProductCard key={product.id} product={product} currency={currency} onOpen={handleOpenProduct} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  currency={currency}
+                  onOpen={handleOpenProduct}
+                  cartCount={itemCounts[product.id] ?? 0}
+                />
               ))}
             </Section>
           )}
@@ -189,14 +248,20 @@ export default function MenuPage() {
             filtered.length > 0 ? (
               <Section title={`${filtered.length} result${filtered.length === 1 ? '' : 's'}`}>
                 {filtered.map((product) => (
-                  <ProductCard key={product.id} product={product} currency={currency} onOpen={handleOpenProduct} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    currency={currency}
+                    onOpen={handleOpenProduct}
+                    cartCount={itemCounts[product.id] ?? 0}
+                  />
                 ))}
               </Section>
             ) : (
               <EmptyState
                 icon={<Search className="size-5" />}
                 title="Nothing matched that"
-                description={`We couldn't find anything for "${debouncedSearch}". Try a different word.`}
+                description={`We couldn't find anything matching your filter. Try adjusting your query.`}
                 className="py-14"
               />
             )
@@ -204,7 +269,13 @@ export default function MenuPage() {
             grouped.map(({ category, products }) => (
               <Section key={category.id} title={category.name} description={category.description}>
                 {products.map((product) => (
-                  <ProductCard key={product.id} product={product} currency={currency} onOpen={handleOpenProduct} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    currency={currency}
+                    onOpen={handleOpenProduct}
+                    cartCount={itemCounts[product.id] ?? 0}
+                  />
                 ))}
               </Section>
             ))
@@ -247,10 +318,10 @@ function Section({
   return (
     <section className="pt-6">
       <div className="mb-3">
-        <h2 className="font-display text-[1.1875rem] font-semibold leading-tight text-ink">{title}</h2>
+        <h2 className="font-display text-[1.25rem] font-bold leading-tight text-ink">{title}</h2>
         {description && <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">{description}</p>}
       </div>
-      <div className="space-y-2.5">{children}</div>
+      <div className="space-y-3">{children}</div>
     </section>
   );
 }

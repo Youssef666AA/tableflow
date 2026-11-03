@@ -42,16 +42,27 @@
   }
 
   [data-surface='customer'] {
-    --c-canvas: 251 248 244;
+    --c-canvas: 250 248 245;
     --c-surface: 255 255 255;
-    --c-surface-sunken: 246 241 234;
+    --c-surface-sunken: 245 241 235;
     --c-surface-raised: 255 255 255;
-    --c-line: 235 228 218;
-    --c-line-strong: 218 208 194;
+    --c-line: 232 228 221;
+    --c-line-strong: 214 208 197;
 
-    --c-ink: 31 36 33;
-    --c-ink-soft: 84 92 87;
-    --c-ink-muted: 137 132 124;
+    --c-ink: 20 20 19;
+    --c-ink-soft: 66 64 60;
+    --c-ink-muted: 110 106 99;
+    --c-ink-inverse: 255 255 255;
+
+    --c-accent: 224 79 51;
+    --c-accent-strong: 196 60 34;
+    --c-accent-soft: 253 242 240;
+
+    --c-gold: 217 119 6;
+    --c-gold-soft: 254 243 199;
+
+    --c-success: 21 128 61;
+    --c-success-soft: 240 253 244;
   }
 
   [data-surface='kitchen'] {
@@ -137,11 +148,35 @@
     background: transparent;
   }
 
-  .no-scrollbar {
+  .no-scrollbar,
+  .scrollbar-none {
     scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  .no-scrollbar::-webkit-scrollbar {
+  .no-scrollbar::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
     display: none;
+  }
+
+  .glass-frosted {
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(232, 228, 221, 0.7);
+  }
+
+  .glass-frosted-canvas {
+    background-color: rgba(250, 248, 245, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .glass-dark {
+    background-color: rgba(20, 20, 19, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
   }
 
   @media (prefers-reduced-motion: reduce) {

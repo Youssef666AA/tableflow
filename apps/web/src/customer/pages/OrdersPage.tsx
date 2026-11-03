@@ -33,10 +33,10 @@ export default function OrdersPage() {
   const past = orders.filter((order) => ['DELIVERED', 'COMPLETED', 'CANCELLED'].includes(order.status));
 
   return (
-    <div className="mx-auto max-w-phone pb-32">
+    <div className="mx-auto max-w-phone pb-36">
       <PageHeader
         title="Your orders"
-        description={`Everything ordered at table ${data.table.number} during this visit`}
+        description={`Active tickets at table ${data.table.number} during this visit`}
       />
 
       <div className="px-4">
@@ -46,19 +46,19 @@ export default function OrdersPage() {
         {query.isSuccess && orders.length === 0 && (
           <EmptyState
             icon={<ClipboardList className="size-5" />}
-            title="No active orders"
-            description="Your table doesn't have any orders yet. Anything you order will appear here with live status."
-            action={<Button onClick={() => navigate('../menu')}>Browse menu</Button>}
+            title="No orders yet"
+            description="Your table doesn't have any placed orders. Anything you order will appear here with live preparation status."
+            action={<Button className="rounded-xl" onClick={() => navigate('../menu')}>Browse menu</Button>}
             className="py-14"
           />
         )}
 
         {active.length > 0 && (
           <section className="mt-4">
-            <h2 className="mb-2.5 text-[0.8125rem] font-semibold uppercase tracking-wider text-ink-soft">
+            <h2 className="mb-2.5 text-xs font-bold uppercase tracking-wider text-ink-soft">
               In progress
             </h2>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {active.map((order) => (
                 <OrderCard
                   key={order.id}
@@ -73,10 +73,10 @@ export default function OrdersPage() {
 
         {past.length > 0 && (
           <section className="mt-7">
-            <h2 className="mb-2.5 text-[0.8125rem] font-semibold uppercase tracking-wider text-ink-soft">
-              Earlier this visit
+            <h2 className="mb-2.5 text-xs font-bold uppercase tracking-wider text-ink-soft">
+              Served earlier
             </h2>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {past.map((order) => (
                 <OrderCard
                   key={order.id}
@@ -90,12 +90,12 @@ export default function OrdersPage() {
         )}
 
         {orders.length > 0 && (
-          <div className="mt-7 flex flex-col gap-2">
-            <Button variant="secondary" size="lg" fullWidth onClick={() => navigate('../menu')}>
+          <div className="mt-7 flex flex-col gap-2.5">
+            <Button variant="secondary" size="lg" fullWidth onClick={() => navigate('../menu')} className="rounded-xl font-semibold">
               Order more
             </Button>
-            <Button variant="ghost" size="lg" fullWidth onClick={() => navigate('../bill')}>
-              View the table bill
+            <Button variant="ghost" size="lg" fullWidth onClick={() => navigate('../bill')} className="rounded-xl font-semibold text-ink hover:bg-stone-100">
+              View table bill
             </Button>
           </div>
         )}

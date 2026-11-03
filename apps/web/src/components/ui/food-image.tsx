@@ -20,12 +20,11 @@ import {
 import { cn } from '@/lib/cn';
 
 /**
- * Product imagery.
+ * High-craft hospitality food imagery container.
  *
- * Real photography is fully supported — pass `src` and it is used. When a
- * restaurant has not uploaded a photo yet (as in the seeded demo) we draw a
- * deterministic, warm gradient plate with a dish glyph instead of showing a
- * broken frame or a grey box. The same product always gets the same artwork.
+ * Supports real photography with smooth two-stage progressive loading
+ * (warm-stone shimmer skeleton transitioning into high-res photo with scale physics).
+ * Includes an editorial fallback with palette hashing, dish monogram, and gourmet glyphs.
  */
 
 const PALETTES: Array<[string, string, string]> = [
@@ -70,19 +69,24 @@ function glyphFor(name: string) {
   return GLYPHS.find((entry) => entry.match.test(name))?.Icon ?? UtensilsCrossed;
 }
 
+export interface FoodImageProps {
+  src?: string | null;
+  name: string;
+  className?: string;
+  rounded?: string;
+  eager?: boolean;
+  aspectRatio?: 'square' | '4/3' | '16/10' | 'auto';
+}
+
 export function FoodImage({
   src,
   name,
   className,
   rounded = 'rounded-md',
   eager,
-}: {
-  src?: string | null;
-  name: string;
-  className?: string;
-  rounded?: string;
-  eager?: boolean;
-}) {
+  aspectRatio = 'auto',
+}: FoodImageProps) {
+  const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
 
   const seed = hash(name);
@@ -90,24 +94,49 @@ export function FoodImage({
   const Glyph = glyphFor(name);
   const angle = 120 + (seed % 5) * 25;
 
+  const aspectClass =
+    aspectRatio === 'square'
+      ? 'aspect-square'
+      : aspectRatio === '4/3'
+        ? 'aspect-[4/3]'
+        : aspectRatio === '16/10'
+          ? 'aspect-[16/10]'
+          : '';
+
   if (src && !failed) {
     return (
-      <img
-        src={src}
-        alt={name}
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
-        onError={() => setFailed(true)}
-        className={cn('size-full object-cover', rounded, className)}
-      />
+      <div className={cn('relative overflow-hidden', aspectClass, rounded, className)}>
+        {/* Animated warm-stone shimmer skeleton while loading */}
+        {!loaded && (
+          <div className="absolute inset-0 z-0 bg-[#E8E4DD]/40 overflow-hidden">
+            <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+          </div>
+        )}
+        <img
+          src={src}
+          alt={name}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+          className={cn(
+            'size-full object-cover transition-all duration-500 ease-out',
+            loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105',
+          )}
+        />
+        {/* Inner boundary highlight */}
+        <div className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-black/5" />
+      </div>
     );
   }
+
+  const monogram = name.trim().slice(0, 2).toUpperCase();
 
   return (
     <div
       role="img"
       aria-label={name}
-      className={cn('relative size-full overflow-hidden', rounded, className)}
+      className={cn('relative size-full overflow-hidden select-none', aspectClass, rounded, className)}
       style={{ background: `linear-gradient(${angle}deg, ${from} 0%, ${to} 100%)` }}
     >
       <span
@@ -115,22 +144,42 @@ export function FoodImage({
         className="absolute -right-[15%] -top-[25%] size-[70%] rounded-full opacity-40 blur-2xl"
         style={{ background: from }}
       />
+      {/* Discreet monogram badge watermark */}
+      <span
+        aria-hidden
+        className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-white/25 backdrop-blur-xs text-[10px] font-bold tracking-wider"
+        style={{ color: ink }}
+      >
+        {monogram}
+      </span>
       <span className="absolute inset-0 flex items-center justify-center" aria-hidden>
         <Glyph
-          className="size-[38%] max-h-16 min-h-6 opacity-30"
+          className="size-[38%] max-h-16 min-h-6 opacity-30 transition-transform duration-300"
           strokeWidth={1.25}
           style={{ color: ink }}
         />
       </span>
+      {/* Inner boundary highlight */}
+      <div className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-black/5" />
     </div>
   );
 }
 
-/** Small round avatar used in dense lists (order lines, kitchen tickets). */
-export function FoodAvatar({ name, src, className }: { name: string; src?: string | null; className?: string }) {
+/** Luxury round/rounded avatar used in dense lists (order lines, kitchen tickets). */
+export function FoodAvatar({
+  name,
+  src,
+  className,
+  rounded = 'rounded-xl',
+}: {
+  name: string;
+  src?: string | null;
+  className?: string;
+  rounded?: string;
+}) {
   return (
-    <div className={cn('size-10 shrink-0 overflow-hidden rounded-md', className)}>
-      <FoodImage name={name} src={src} rounded="rounded-md" />
+    <div className={cn('size-12 shrink-0 overflow-hidden shadow-xs ring-1 ring-black/5', rounded, className)}>
+      <FoodImage name={name} src={src} rounded={rounded} eager />
     </div>
   );
 }

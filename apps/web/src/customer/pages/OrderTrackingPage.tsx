@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, BellRing, Plus, Receipt } from 'lucide-react';
+import { ArrowLeft, BellRing, Plus, Receipt, Utensils } from 'lucide-react';
 import { api } from '@/lib/api';
 import { money } from '@/lib/format';
 import { useRealtimeInvalidation, useSocket } from '@/lib/hooks';
@@ -33,17 +33,20 @@ export default function OrderTrackingPage() {
   const order = query.data?.order;
 
   return (
-    <div className="mx-auto max-w-phone px-4 pb-32">
+    <div className="mx-auto max-w-phone px-4 pb-36">
       <div className="flex items-center justify-between gap-3 pt-4">
         <button
+          type="button"
           onClick={() => navigate('../orders')}
-          className="-ml-2 inline-flex items-center gap-1.5 rounded p-2 text-sm font-medium text-ink-soft hover:text-ink"
+          className="-ml-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-ink-soft transition-all hover:bg-stone-100 hover:text-ink active:scale-95"
         >
           <ArrowLeft className="size-4" aria-hidden />
           Orders
         </button>
         {order && (
-          <span className="tabular font-display text-lg font-semibold text-ink">{order.reference}</span>
+          <span className="tabular rounded-full bg-stone-100 px-3 py-1 font-mono text-xs font-bold text-ink">
+            {order.reference}
+          </span>
         )}
       </div>
 
@@ -52,68 +55,109 @@ export default function OrderTrackingPage() {
 
       {order && (
         <>
-          <div className="pb-6 pt-3">
-            <p className="text-2xs font-semibold uppercase tracking-[0.14em] text-accent-strong">
+          <div className="pb-5 pt-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-0.5 text-2xs font-bold uppercase tracking-wider text-accent-strong">
+              <span className="size-1.5 rounded-full bg-accent" />
               Table {order.tableNumber}
-            </p>
-            <h1 className="mt-1.5 font-display text-[1.625rem] font-semibold leading-tight tracking-tight text-ink">
+            </span>
+            <h1 className="mt-2 font-display text-[1.75rem] font-bold leading-tight tracking-tight text-ink">
               {headlineFor(order.stage)}
             </h1>
           </div>
 
-          <section className="rounded-lg border border-line bg-surface p-5 shadow-subtle">
+          {/* Timeline tracker */}
+          <section className="rounded-2xl border border-line/75 bg-surface p-5 shadow-subtle">
             <OrderTimeline order={order} />
           </section>
 
-          <section className="mt-5 rounded-lg border border-line bg-surface p-4 shadow-subtle">
-            <h2 className="mb-3 text-sm font-semibold text-ink">What you ordered</h2>
-            <ul className="space-y-3">
+          {/* Ticket Breakdown */}
+          <section className="mt-5 rounded-2xl border border-line/75 bg-surface p-5 shadow-subtle">
+            <div className="flex items-center justify-between pb-3 border-b border-line/60">
+              <h2 className="font-display text-sm font-bold text-ink">What you ordered</h2>
+              <span className="text-2xs font-semibold text-ink-muted">{order.items.length} items</span>
+            </div>
+
+            <ul className="mt-3.5 space-y-3">
               {order.items.map((item) => (
-                <li key={item.id} className="flex gap-3">
-                  <span className="tabular shrink-0 text-sm font-semibold text-ink-muted">{item.quantity}×</span>
+                <li key={item.id} className="flex gap-3 text-sm">
+                  <span className="tabular flex size-6 shrink-0 items-center justify-center rounded-md bg-stone-100 text-xs font-bold text-ink-soft">
+                    {item.quantity}×
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-ink">
+                    <p className="font-semibold text-ink">
                       {item.productName}
-                      {item.variantName && <span className="font-normal text-ink-muted"> · {item.variantName}</span>}
+                      {item.variantName && (
+                        <span className="ml-1 text-xs font-medium text-accent-strong">· {item.variantName}</span>
+                      )}
                     </p>
                     {item.modifiers.length > 0 && (
-                      <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">
+                      <p className="mt-0.5 text-xs text-ink-muted">
                         {item.modifiers.map((modifier) => modifier.optionName).join(' · ')}
                       </p>
                     )}
                     {item.notes && (
-                      <p className="mt-0.5 text-xs italic leading-relaxed text-ink-muted">“{item.notes}”</p>
+                      <p className="mt-0.5 text-xs italic text-ink-muted">“{item.notes}”</p>
                     )}
                   </div>
-                  <span className="tabular shrink-0 text-sm text-ink">{money(item.lineTotal, currency)}</span>
+                  <span className="tabular shrink-0 font-semibold text-ink">
+                    {money(item.lineTotal, currency)}
+                  </span>
                 </li>
               ))}
             </ul>
 
-            <dl className="mt-4 space-y-1.5 border-t border-line pt-3 text-sm">
+            <dl className="mt-4 space-y-1.5 border-t border-line/60 pt-3 text-sm">
               {order.discountTotal > 0 && (
                 <div className="flex justify-between">
                   <dt className="text-accent-strong">Discounts</dt>
-                  <dd className="tabular text-accent-strong">−{money(order.discountTotal, currency)}</dd>
+                  <dd className="tabular font-medium text-accent-strong">−{money(order.discountTotal, currency)}</dd>
                 </div>
               )}
               <div className="flex items-baseline justify-between pt-1">
-                <dt className="font-semibold text-ink">Order total</dt>
-                <dd className="tabular font-display text-lg font-semibold text-ink">
+                <dt className="font-bold text-ink">Order total</dt>
+                <dd className="tabular font-display text-xl font-bold text-ink">
                   {money(order.total, currency)}
                 </dd>
               </div>
             </dl>
 
             {order.notes && (
-              <p className="mt-3 rounded-md bg-surface-sunken px-3 py-2 text-xs leading-relaxed text-ink-muted">
-                <span className="font-medium text-ink-soft">Your note:</span> {order.notes}
-              </p>
+              <div className="mt-3.5 rounded-xl bg-stone-50 px-3.5 py-2.5 text-xs text-ink-muted">
+                <span className="font-semibold text-ink-soft">Special note:</span> {order.notes}
+              </div>
             )}
           </section>
 
-          <div className="mt-5 grid grid-cols-2 gap-2.5">
-            <Button variant="secondary" size="lg" onClick={() => navigate('../menu')} leadingIcon={<Plus className="size-4" />}>
+          {/* Contextual Assistance card */}
+          <div className="mt-5 rounded-2xl border border-line/75 bg-surface p-4 shadow-subtle">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-strong">
+                <Utensils className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-ink">Need help or cutlery?</p>
+                <p className="text-xs text-ink-muted">Our floor team is on standby to assist.</p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate('../services')}
+                className="shrink-0 text-xs font-semibold text-ink hover:bg-stone-100"
+              >
+                Call waiter
+              </Button>
+            </div>
+          </div>
+
+          {/* Quick action navigation buttons */}
+          <div className="mt-4 grid grid-cols-2 gap-2.5">
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => navigate('../menu')}
+              leadingIcon={<Plus className="size-4" />}
+              className="rounded-xl font-semibold"
+            >
               Order more
             </Button>
             <Button
@@ -121,13 +165,14 @@ export default function OrderTrackingPage() {
               size="lg"
               onClick={() => navigate('../services')}
               leadingIcon={<BellRing className="size-4" />}
+              className="rounded-xl font-semibold"
             >
               Call waiter
             </Button>
             <Button
               variant="ghost"
               size="lg"
-              className="col-span-2"
+              className="col-span-2 rounded-xl font-semibold text-ink hover:bg-stone-100"
               onClick={() => navigate('../bill')}
               leadingIcon={<Receipt className="size-4" />}
             >
@@ -136,7 +181,7 @@ export default function OrderTrackingPage() {
           </div>
 
           <p className="mt-6 text-center text-2xs leading-relaxed text-ink-muted">
-            Session {data.session.code} · this page updates by itself, no need to refresh.
+            Session {data.session.code} · this view updates in real-time, no refresh needed.
           </p>
         </>
       )}

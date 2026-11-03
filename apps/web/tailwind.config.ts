@@ -58,6 +58,9 @@ const config: Config = {
         lift: '0 2px 4px rgb(24 24 27 / 0.04), 0 8px 20px -6px rgb(24 24 27 / 0.10)',
         overlay: '0 12px 40px -8px rgb(24 24 27 / 0.22), 0 4px 12px -4px rgb(24 24 27 / 0.10)',
         inner: 'inset 0 1px 2px rgb(24 24 27 / 0.05)',
+        ambient: '0 8px 30px rgb(20 20 19 / 0.06)',
+        float: '0 12px 36px -4px rgb(20 20 19 / 0.12), 0 4px 12px -2px rgb(20 20 19 / 0.06)',
+        glass: '0 8px 32px 0 rgba(20, 20, 19, 0.08)',
       },
       spacing: {
         safe: 'env(safe-area-inset-bottom, 0px)',
@@ -84,12 +87,17 @@ const config: Config = {
           '70%': { transform: 'scale(1.6)', opacity: '0' },
           '100%': { transform: 'scale(1.6)', opacity: '0' },
         },
+        'sheet-up': {
+          from: { transform: 'translateY(100%)', opacity: '0' },
+          to: { transform: 'translateY(0)', opacity: '1' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1)',
         'slide-up': 'slide-up 260ms cubic-bezier(0.22, 1, 0.36, 1)',
         shimmer: 'shimmer 1.6s infinite',
         'pulse-ring': 'pulse-ring 2s cubic-bezier(0.22, 1, 0.36, 1) infinite',
+        'sheet-up': 'sheet-up 320ms cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

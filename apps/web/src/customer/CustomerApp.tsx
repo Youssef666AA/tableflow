@@ -54,45 +54,47 @@ function CustomerShell() {
   const showChrome = !onVerifyPage && !onCartPage;
 
   return (
-    <div className="min-h-[100dvh] bg-canvas">
-      {!online && (
-        <div className="sticky top-0 z-40 bg-warning px-4 py-2 text-center text-xs font-medium text-white">
-          You appear to be offline — orders cannot be sent right now.
-        </div>
-      )}
+    <div className="min-h-[100dvh] bg-canvas sm:bg-[#F3EFEA] sm:py-6 sm:px-4">
+      <div className="relative mx-auto min-h-[100dvh] max-w-phone overflow-x-hidden bg-canvas sm:min-h-[calc(100dvh-3rem)] sm:rounded-[2.5rem] sm:border sm:border-line/60 sm:shadow-float">
+        {!online && (
+          <div className="sticky top-0 z-40 bg-warning px-4 py-2 text-center text-xs font-medium text-white">
+            You appear to be offline — orders cannot be sent right now.
+          </div>
+        )}
 
-      {!onVerifyPage && <RestaurantHeader />}
+        {!onVerifyPage && <RestaurantHeader />}
 
-      <AnimatePresence mode="wait">
-        <motion.main
-          key={location.pathname}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <Routes location={location}>
-            <Route index element={<Navigate to="menu" replace />} />
-            <Route path="verify" element={<VerifyPage />} />
-            <Route path="menu" element={<MenuPage />} />
-            <Route path="cart" element={<CartPage />} />
-            <Route path="orders" element={<OrdersPage />} />
-            <Route path="order/:orderId" element={<OrderTrackingPage />} />
-            <Route path="services" element={<ServicesPage />} />
-            <Route path="bill" element={<BillPage />} />
-            <Route path="receipt/:receiptId" element={<ReceiptPage />} />
-            <Route path="review" element={<ReviewPage />} />
-            <Route path="*" element={<Navigate to="menu" replace />} />
-          </Routes>
-        </motion.main>
-      </AnimatePresence>
+        <AnimatePresence mode="wait">
+          <motion.main
+            key={location.pathname}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Routes location={location}>
+              <Route index element={<Navigate to="menu" replace />} />
+              <Route path="verify" element={<VerifyPage />} />
+              <Route path="menu" element={<MenuPage />} />
+              <Route path="cart" element={<CartPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+              <Route path="order/:orderId" element={<OrderTrackingPage />} />
+              <Route path="services" element={<ServicesPage />} />
+              <Route path="bill" element={<BillPage />} />
+              <Route path="receipt/:receiptId" element={<ReceiptPage />} />
+              <Route path="review" element={<ReviewPage />} />
+              <Route path="*" element={<Navigate to="menu" replace />} />
+            </Routes>
+          </motion.main>
+        </AnimatePresence>
 
-      {showChrome && (
-        <>
-          <CartBar />
-          <BottomNav />
-        </>
-      )}
+        {showChrome && (
+          <>
+            <CartBar />
+            <BottomNav />
+          </>
+        )}
+      </div>
     </div>
   );
 }

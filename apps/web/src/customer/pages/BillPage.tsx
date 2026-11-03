@@ -54,7 +54,7 @@ export default function BillPage() {
   const tipAmount = bill ? Math.round((bill.outstanding * tipPercent) / 100) : 0;
 
   return (
-    <div className="mx-auto max-w-phone pb-32">
+    <div className="mx-auto max-w-phone pb-36">
       <PageHeader title="Your bill" description={`Table ${data.table.number} · session ${data.session.code}`} />
 
       <div className="px-4">
@@ -62,11 +62,11 @@ export default function BillPage() {
         {query.isError && <ErrorState error={query.error} onRetry={() => void query.refetch()} />}
 
         {bill && bill.billTotal === 0 && (
-          <div className="mt-6 rounded-lg border border-dashed border-line bg-surface/60 px-4 py-10 text-center">
+          <div className="mt-6 rounded-2xl border border-dashed border-line/80 bg-surface/50 px-4 py-10 text-center">
             <Receipt className="mx-auto mb-2 size-5 text-ink-muted" aria-hidden />
-            <p className="text-sm font-medium text-ink">Nothing on the bill yet</p>
-            <p className="mt-1 text-xs text-ink-muted">Orders you place will be added here automatically.</p>
-            <Button className="mt-4" variant="secondary" onClick={() => navigate('../menu')}>
+            <p className="text-sm font-bold text-ink">Nothing on the bill yet</p>
+            <p className="mt-1 text-xs text-ink-muted">Dishes you order will automatically be added here.</p>
+            <Button className="mt-4 rounded-xl" variant="secondary" onClick={() => navigate('../menu')}>
               Browse the menu
             </Button>
           </div>
@@ -78,20 +78,20 @@ export default function BillPage() {
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 flex items-start gap-3 rounded-lg border border-accent/25 bg-accent-soft px-4 py-3.5"
+                className="mt-4 flex items-start gap-3 rounded-2xl border border-accent/25 bg-accent-soft px-4 py-3.5 shadow-xs"
               >
                 <BadgeCheck className="mt-0.5 size-5 shrink-0 text-accent-strong" aria-hidden />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-accent-strong">This bill has been settled</p>
+                  <p className="text-sm font-bold text-accent-strong">This bill has been settled</p>
                   <p className="mt-0.5 text-xs leading-relaxed text-accent-strong/80">
-                    Thank you. Your receipt is ready to view or download.
+                    Thank you for dining with us. Your receipt is available below.
                   </p>
                   {bill.receiptId && (
-                    <div className="mt-2.5 flex flex-wrap gap-2">
-                      <Button size="sm" onClick={() => navigate(`../receipt/${bill.receiptId}`)}>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button size="sm" onClick={() => navigate(`../receipt/${bill.receiptId}`)} className="rounded-xl">
                         View receipt
                       </Button>
-                      <Button size="sm" variant="secondary" onClick={() => navigate('../review')}>
+                      <Button size="sm" variant="secondary" onClick={() => navigate('../review')} className="rounded-xl">
                         Leave a review
                       </Button>
                     </div>
@@ -100,22 +100,23 @@ export default function BillPage() {
               </motion.div>
             )}
 
-            <section className="mt-4 rounded-lg border border-line bg-surface shadow-subtle">
+            {/* Individual orders list */}
+            <section className="mt-4 overflow-hidden rounded-2xl border border-line/75 bg-surface shadow-subtle">
               {bill.orders.map((order) => (
-                <div key={order.id} className="border-b border-line px-4 py-3.5 last:border-0">
+                <div key={order.id} className="border-b border-line/60 px-4 py-3.5 last:border-0">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="tabular text-sm font-semibold text-ink">Order #{order.number}</p>
-                    <p className="tabular text-sm font-semibold text-ink">{money(order.total, currency)}</p>
+                    <p className="tabular text-sm font-bold text-ink">Order #{order.number}</p>
+                    <p className="tabular text-sm font-bold text-ink">{money(order.total, currency)}</p>
                   </div>
-                  <p className="mt-0.5 text-2xs text-ink-muted">
+                  <p className="mt-0.5 text-2xs font-medium text-ink-muted">
                     {formatTime(order.createdAt)}
-                    {order.paid && <span className="ml-1.5 text-accent-strong">· paid</span>}
+                    {order.paid && <span className="ml-1.5 font-bold text-accent-strong">· paid</span>}
                   </p>
                   <ul className="mt-2 space-y-1">
                     {order.items.map((item, index) => (
                       <li key={index} className="flex justify-between gap-3 text-xs text-ink-muted">
                         <span className="truncate">
-                          <span className="tabular font-medium text-ink-soft">{item.quantity}×</span>{' '}
+                          <span className="tabular font-semibold text-ink-soft">{item.quantity}×</span>{' '}
                           {item.name}
                           {item.variantName ? ` · ${item.variantName}` : ''}
                         </span>
@@ -127,7 +128,8 @@ export default function BillPage() {
               ))}
             </section>
 
-            <section className="mt-4 rounded-lg border border-line bg-surface p-4 shadow-subtle">
+            {/* Receipt Summary Breakdown */}
+            <section className="mt-4 rounded-2xl border border-line/75 bg-surface p-4.5 shadow-subtle">
               <dl className="space-y-2 text-sm">
                 <Row label="Subtotal" value={money(bill.subtotal, currency)} />
                 {bill.discountTotal > 0 && (
@@ -140,11 +142,12 @@ export default function BillPage() {
                 {bill.paidTotal > 0 && (
                   <Row label="Already paid" value={`−${money(bill.paidTotal, currency)}`} tone="accent" />
                 )}
-                <div className="flex items-baseline justify-between border-t border-line pt-3">
-                  <dt className="text-[0.9375rem] font-semibold text-ink">
+                <div className="my-2 border-t border-dashed border-line-strong" />
+                <div className="flex items-baseline justify-between pt-1">
+                  <dt className="text-sm font-bold text-ink">
                     {bill.outstanding > 0 ? 'Outstanding' : 'Total'}
                   </dt>
-                  <dd className="tabular font-display text-2xl font-semibold text-ink">
+                  <dd className="tabular font-display text-2xl font-bold text-ink">
                     {money(bill.outstanding > 0 ? bill.outstanding : bill.billTotal, currency)}
                   </dd>
                 </div>
@@ -153,27 +156,30 @@ export default function BillPage() {
 
             {!bill.settled && (
               <>
-                <section className="mt-4 rounded-lg border border-line bg-surface p-4 shadow-subtle">
+                {/* Bill Splitting Card */}
+                <section className="mt-4 rounded-2xl border border-line/75 bg-surface p-4 shadow-subtle">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Users className="size-4 text-ink-muted" aria-hidden />
-                      <h3 className="text-sm font-semibold text-ink">Split the bill</h3>
+                      <Users className="size-4 text-accent" aria-hidden />
+                      <h3 className="text-sm font-bold text-ink">Split the bill</h3>
                     </div>
-                    <div className="flex items-center rounded-md border border-line-strong">
+                    <div className="flex items-center rounded-xl border border-line-strong/80 bg-surface shadow-xs">
                       <button
+                        type="button"
                         aria-label="Fewer people"
                         onClick={() => setSplitParts((n) => Math.max(1, n - 1))}
                         disabled={splitParts <= 1}
-                        className="flex size-9 items-center justify-center text-ink-soft disabled:opacity-35"
+                        className="flex size-9 items-center justify-center text-ink-soft transition-all hover:text-ink active:scale-90 disabled:opacity-30"
                       >
                         <Minus className="size-3.5" strokeWidth={2.4} />
                       </button>
-                      <span className="tabular w-8 text-center text-sm font-semibold text-ink">{splitParts}</span>
+                      <span className="tabular w-8 text-center text-sm font-bold text-ink select-none">{splitParts}</span>
                       <button
+                        type="button"
                         aria-label="More people"
                         onClick={() => setSplitParts((n) => Math.min(20, n + 1))}
                         disabled={splitParts >= 20}
-                        className="flex size-9 items-center justify-center text-ink-soft disabled:opacity-35"
+                        className="flex size-9 items-center justify-center text-ink-soft transition-all hover:text-ink active:scale-90 disabled:opacity-30"
                       >
                         <Plus className="size-3.5" strokeWidth={2.4} />
                       </button>
@@ -181,14 +187,14 @@ export default function BillPage() {
                   </div>
 
                   {splitParts > 1 && (
-                    <div className="mt-3 rounded-md bg-surface-sunken px-3.5 py-3">
-                      <p className="text-xs text-ink-muted">Each person pays</p>
-                      <p className="tabular mt-0.5 font-display text-xl font-semibold text-ink">
+                    <div className="mt-3 rounded-xl bg-stone-50 px-3.5 py-3">
+                      <p className="text-xs font-medium text-ink-muted">Each person pays</p>
+                      <p className="tabular mt-0.5 font-display text-xl font-bold text-ink">
                         {money(bill.split[0] ?? 0, currency)}
                       </p>
                       {new Set(bill.split).size > 1 && (
                         <p className="mt-1 text-2xs text-ink-muted">
-                          Rounding means one share is {money(bill.split[bill.split.length - 1] ?? 0, currency)}.
+                          Rounding adjustment: final share is {money(bill.split[bill.split.length - 1] ?? 0, currency)}.
                         </p>
                       )}
                     </div>
@@ -201,6 +207,7 @@ export default function BillPage() {
                     fullWidth
                     onClick={() => setPayOpen(true)}
                     leadingIcon={<CreditCard className="size-4" />}
+                    className="h-14 rounded-2xl bg-accent hover:bg-accent-strong text-white font-bold text-base shadow-lift transition-transform active:scale-[0.98]"
                   >
                     Pay now
                   </Button>
@@ -211,12 +218,13 @@ export default function BillPage() {
                     loading={requestBill.isPending}
                     onClick={() => requestBill.mutate()}
                     leadingIcon={<Wallet className="size-4" />}
+                    className="rounded-2xl font-semibold"
                   >
                     {bill.billRequestedAt ? 'Bill already requested' : 'Pay at the table (cash or card)'}
                   </Button>
                   {bill.billRequestedAt && (
                     <p className="text-center text-xs text-ink-muted">
-                      Requested at {formatTime(bill.billRequestedAt)} — a member of staff is on the way.
+                      Requested at {formatTime(bill.billRequestedAt)} — our staff is on their way.
                     </p>
                   )}
                 </div>
@@ -258,11 +266,11 @@ function Row({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <dt className={tone === 'accent' ? 'text-accent-strong' : 'text-ink-muted'}>{label}</dt>
+      <dt className={tone === 'accent' ? 'font-medium text-accent-strong' : 'text-ink-muted'}>{label}</dt>
       <dd
         className={cn(
           'tabular',
-          tone === 'accent' ? 'font-medium text-accent-strong' : muted ? 'text-ink-muted' : 'text-ink',
+          tone === 'accent' ? 'font-semibold text-accent-strong' : muted ? 'text-ink-muted' : 'font-medium text-ink',
         )}
       >
         {value}
@@ -345,41 +353,47 @@ function PaymentSheet({
       open={open}
       onClose={status === 'processing' ? () => undefined : onClose}
       title="Demo online payment"
-      description="A simulated card payment. No real money is processed."
+      description="Simulated secure card checkout."
       footer={
-        <Button size="xl" fullWidth loading={status === 'processing'} onClick={() => void pay()}>
+        <Button
+          size="xl"
+          fullWidth
+          loading={status === 'processing'}
+          onClick={() => void pay()}
+          className="h-14 rounded-2xl bg-accent hover:bg-accent-strong text-white font-bold text-base shadow-lift"
+        >
           {status === 'processing' ? 'Processing…' : `Pay ${money(chargeAmount + tipAmount, currency)}`}
         </Button>
       }
     >
       <div className="space-y-5 px-5 pb-6 pt-1">
         {perPerson !== null && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             <ChoiceButton active={payingWhole} onClick={() => setPayingWhole(true)}>
-              <span className="block text-xs text-ink-muted">Whole bill</span>
-              <span className="tabular block text-sm font-semibold text-ink">{money(amount, currency)}</span>
+              <span className="block text-xs font-medium text-ink-muted">Whole bill</span>
+              <span className="tabular block text-sm font-bold text-ink">{money(amount, currency)}</span>
             </ChoiceButton>
             <ChoiceButton active={!payingWhole} onClick={() => setPayingWhole(false)}>
-              <span className="block text-xs text-ink-muted">My share</span>
-              <span className="tabular block text-sm font-semibold text-ink">{money(perPerson, currency)}</span>
+              <span className="block text-xs font-medium text-ink-muted">My share</span>
+              <span className="tabular block text-sm font-bold text-ink">{money(perPerson, currency)}</span>
             </ChoiceButton>
           </div>
         )}
 
         <div>
-          <p className="mb-2 text-[0.8125rem] font-medium text-ink-soft">Add a tip</p>
+          <p className="mb-2 text-xs font-semibold text-ink-soft">Add staff gratuity</p>
           <div className="grid grid-cols-4 gap-2">
             {TIP_PRESETS.map((percent) => (
               <ChoiceButton key={percent} active={tipPercent === percent} onClick={() => onTipChange(percent)}>
-                <span className="block text-sm font-semibold text-ink">{percent === 0 ? 'None' : `${percent}%`}</span>
+                <span className="block text-sm font-bold text-ink">{percent === 0 ? 'None' : `${percent}%`}</span>
               </ChoiceButton>
             ))}
           </div>
         </div>
 
-        <div className="space-y-3 rounded-lg border border-line bg-surface-sunken/60 p-4">
+        <div className="space-y-3 rounded-2xl border border-line/75 bg-stone-50/70 p-4">
           <div>
-            <label htmlFor="card-number" className="mb-1.5 block text-[0.8125rem] font-medium text-ink-soft">
+            <label htmlFor="card-number" className="mb-1.5 block text-xs font-semibold text-ink-soft">
               Card number
             </label>
             <Input
@@ -388,12 +402,12 @@ function PaymentSheet({
               autoComplete="cc-number"
               value={card.cardNumber}
               onChange={(event) => setCard({ ...card, cardNumber: event.target.value })}
-              className="tabular"
+              className="tabular rounded-xl"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="card-expiry" className="mb-1.5 block text-[0.8125rem] font-medium text-ink-soft">
+              <label htmlFor="card-expiry" className="mb-1.5 block text-xs font-semibold text-ink-soft">
                 Expiry
               </label>
               <Input
@@ -402,11 +416,11 @@ function PaymentSheet({
                 autoComplete="cc-exp"
                 value={card.expiry}
                 onChange={(event) => setCard({ ...card, expiry: event.target.value })}
-                className="tabular"
+                className="tabular rounded-xl"
               />
             </div>
             <div>
-              <label htmlFor="card-cvc" className="mb-1.5 block text-[0.8125rem] font-medium text-ink-soft">
+              <label htmlFor="card-cvc" className="mb-1.5 block text-xs font-semibold text-ink-soft">
                 CVC
               </label>
               <Input
@@ -415,12 +429,12 @@ function PaymentSheet({
                 autoComplete="cc-csc"
                 value={card.cvc}
                 onChange={(event) => setCard({ ...card, cvc: event.target.value })}
-                className="tabular"
+                className="tabular rounded-xl"
               />
             </div>
           </div>
           <div>
-            <label htmlFor="card-holder" className="mb-1.5 block text-[0.8125rem] font-medium text-ink-soft">
+            <label htmlFor="card-holder" className="mb-1.5 block text-xs font-semibold text-ink-soft">
               Name on card
             </label>
             <Input
@@ -429,25 +443,17 @@ function PaymentSheet({
               value={card.holder}
               onChange={(event) => setCard({ ...card, holder: event.target.value })}
               placeholder="Guest"
+              className="rounded-xl"
             />
           </div>
         </div>
 
         {status === 'failed' && failure && (
-          <div className="rounded-md border border-danger/25 bg-danger-soft px-3.5 py-3">
-            <p className="text-sm font-medium text-danger">Payment declined</p>
+          <div className="rounded-xl border border-danger/25 bg-danger-soft px-3.5 py-3">
+            <p className="text-sm font-semibold text-danger">Payment declined</p>
             <p className="mt-0.5 text-xs leading-relaxed text-danger/80">{failure}</p>
           </div>
         )}
-
-        <div className="rounded-md bg-surface-sunken px-3.5 py-3">
-          <p className="text-2xs font-semibold uppercase tracking-wider text-ink-muted">Test cards</p>
-          <ul className="mt-1.5 space-y-0.5 text-2xs text-ink-muted">
-            <li className="tabular">4242 4242 4242 4242 — approved</li>
-            <li className="tabular">4000 0000 0000 0002 — declined by issuer</li>
-            <li className="tabular">4000 0000 0000 9995 — insufficient funds</li>
-          </ul>
-        </div>
       </div>
     </BottomSheet>
   );
@@ -464,10 +470,13 @@ function ChoiceButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={cn(
-        'rounded-md border px-3 py-2.5 text-center transition-colors',
-        active ? 'border-accent bg-accent-soft' : 'border-line bg-surface hover:bg-surface-sunken',
+        'rounded-xl border px-3 py-2.5 text-center transition-all active:scale-95',
+        active
+          ? 'border-accent bg-accent-soft/60 shadow-xs'
+          : 'border-line/75 bg-surface hover:border-line-strong active:bg-stone-50',
       )}
     >
       {children}
