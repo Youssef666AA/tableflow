@@ -194,7 +194,7 @@ export default function AdminMenuPage() {
                     className="flex flex-1 flex-col text-left"
                     disabled={!can('menu:manage')}
                   >
-                    <div className="relative h-28 w-full">
+                    <div className="relative h-28 w-full overflow-hidden">
                       <FoodImage name={product.name} src={product.imageUrl} rounded="rounded-none" />
                       {product.status !== 'AVAILABLE' && (
                         <span className="absolute inset-0 flex items-center justify-center bg-ink/50 text-2xs font-semibold uppercase tracking-wider text-white">

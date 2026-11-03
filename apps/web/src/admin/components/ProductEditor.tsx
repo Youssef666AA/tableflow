@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/cn';
 import { Button, Field, IconButton, Input, Select, Switch, Textarea } from '@/components/ui/primitives';
 import { SidePanel, useToast } from '@/components/ui/overlays';
+import { FoodImage } from '@/components/ui/food-image';
 import type { AdminCategory, AdminProduct, AdminStation } from '../types';
 
 interface DraftVariant {
@@ -369,6 +370,34 @@ export function ProductEditor({
               placeholder="https://…"
             />
           </Field>
+
+          {/* Live Image Preview */}
+          <div className="sm:col-span-2 flex items-center gap-4 rounded-xl border border-line bg-surface-sunken/40 p-3.5">
+            <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border border-line bg-white shadow-xs">
+              <FoodImage
+                name={draft.name || 'Dish preview'}
+                src={draft.imageUrl.trim() || null}
+                eager
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-ink">Image Preview</p>
+              <p className="mt-0.5 text-xs text-ink-muted">
+                {draft.imageUrl.trim()
+                  ? 'Showing live photo preview from URL'
+                  : 'No URL entered — will display generated culinary artwork'}
+              </p>
+              {draft.imageUrl.trim() && (
+                <button
+                  type="button"
+                  onClick={() => update('imageUrl', '')}
+                  className="mt-1.5 text-xs font-medium text-danger hover:underline"
+                >
+                  Clear image URL
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-6 rounded-lg border border-line bg-surface-sunken/50 p-4">

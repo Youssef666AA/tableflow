@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Beef,
   CakeSlice,
@@ -88,6 +88,17 @@ export function FoodImage({
 }: FoodImageProps) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    setFailed(false);
+    // If the image is already cached or complete, immediately mark as loaded
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setLoaded(true);
+    } else {
+      setLoaded(false);
+    }
+  }, [src]);
 
   const seed = hash(name);
   const [from, to, ink] = PALETTES[seed % PALETTES.length];
@@ -105,7 +116,7 @@ export function FoodImage({
 
   if (src && !failed) {
     return (
-      <div className={cn('relative overflow-hidden', aspectClass, rounded, className)}>
+      <div className={cn('relative size-full overflow-hidden', aspectClass, rounded, className)}>
         {/* Animated warm-stone shimmer skeleton while loading */}
         {!loaded && (
           <div className="absolute inset-0 z-0 bg-[#E8E4DD]/40 overflow-hidden">
@@ -113,6 +124,7 @@ export function FoodImage({
           </div>
         )}
         <img
+          ref={imgRef}
           src={src}
           alt={name}
           loading={eager ? 'eager' : 'lazy'}
@@ -120,7 +132,7 @@ export function FoodImage({
           onLoad={() => setLoaded(true)}
           onError={() => setFailed(true)}
           className={cn(
-            'size-full object-cover transition-all duration-500 ease-out',
+            'size-full object-cover transition-all duration-300 ease-out',
             loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105',
           )}
         />
